@@ -14,6 +14,7 @@ LAYOUT_SCREENSHOT = Path("/tmp/cowrite-layout-modal.png")
 COWRITE_SCREENSHOT = Path("/tmp/cowrite-creation-modal.png")
 SEND_SCREENSHOT = Path("/tmp/cowrite-send-modal.png")
 DELETE_SCREENSHOT = Path("/tmp/cowrite-delete-modal.png")
+ARTICLE_ILLUSTRATION_SCREENSHOT = Path("/tmp/cowrite-article-illustration-modal.png")
 
 
 def main() -> None:
@@ -123,6 +124,18 @@ def main() -> None:
             const active = pages.find((item) => item.title === activeTitle)
             return fetch(`/api/pages/${active.id}`).then((response) => response.json()).then((item) => item.content)
         }""")
+        page.evaluate("window.getSelection().removeAllRanges()")
+        page.get_by_role("button", name="配图", exact=True).click()
+        page.get_by_role("heading", name="整篇配图", exact=True).wait_for()
+        page.wait_for_timeout(250)
+        page.screenshot(path=str(ARTICLE_ILLUSTRATION_SCREENSHOT), full_page=True)
+        page.get_by_role("button", name="确认并复制配图任务").click()
+        article_illustration_command = page.evaluate("navigator.clipboard.readText()")
+        assert "article-batch-illustration Skill" in article_illustration_command
+        assert "GPT-Image-2 / LabNana" in article_illustration_command
+        assert "cowrite_insert_after" in article_illustration_command
+        assert active_content in article_illustration_command
+
         page.get_by_role("button", name="Cowrite", exact=True).click()
         page.get_by_role("heading", name="Cowrite", exact=True).wait_for()
         page.get_by_role("button", name="按页面内容为要求创作").click()
@@ -185,6 +198,7 @@ def main() -> None:
         print(f"cowrite_screenshot={COWRITE_SCREENSHOT}")
         print(f"send_screenshot={SEND_SCREENSHOT}")
         print(f"delete_screenshot={DELETE_SCREENSHOT}")
+        print(f"article_illustration_screenshot={ARTICLE_ILLUSTRATION_SCREENSHOT}")
         browser.close()
 
 

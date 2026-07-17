@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { conversationCommand, explainerCommand, illustrateCommand, larkSendCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from '../src/agentCommands.js'
+import { articleIllustrationCommand, conversationCommand, explainerCommand, illustrateCommand, larkSendCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from '../src/agentCommands.js'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const input = { pageId: 'page_demo', selection: '这是一段需要处理的文字。' }
@@ -35,6 +35,18 @@ describe('agent command skill routing', () => {
     expect(command).toContain('不得静默替换为其他模型')
     expect(command).toContain('cowrite_upload_asset')
     expect(command).toContain('cowrite_insert_after')
+  })
+
+  it('routes full-article illustration through batch planning and Image2', () => {
+    const command = articleIllustrationCommand({ pageId: 'page_demo', title: '整篇文章', content: '# 整篇文章\n\n## 第一节\n\n正文。' })
+    expect(command).toContain('article-batch-illustration Skill')
+    expect(command).toContain('image-studio Skill')
+    expect(command).toContain('GPT-Image-2 / LabNana')
+    expect(command).toContain('2-6 张')
+    expect(command).toContain('cowrite_upload_asset')
+    expect(command).toContain('cowrite_insert_after')
+    expect(command).toContain('# 整篇文章\n\n## 第一节\n\n正文。')
+    expect(command).toContain('不改写、移动或删除页面其他内容')
   })
 
   it('routes HTML commands to the bundled HTML/PPT diagram skill', () => {

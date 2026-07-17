@@ -85,6 +85,14 @@
 .markdown-picker b { font-size: 13px; font-weight: 600; }
 .markdown-picker small { color: var(--faint); font-size: 11px; }
 
+.illustration-modal { width: min(500px, calc(100% - 40px)); }
+.illustration-page { min-width: 0; display: grid; gap: 3px; padding: 11px 13px; border-radius: 7px; background: #f7f7f5; }
+.illustration-page span, .illustration-specs span { color: var(--faint); font-size: 10px; }
+.illustration-page b { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.illustration-specs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.illustration-specs div { display: grid; gap: 4px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 7px; }
+.illustration-specs b { font-size: 12px; font-weight: 600; }
+
 .cowrite-modal { width: min(500px, calc(100% - 40px)); }
 .cowrite-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .cowrite-mode { width: 100%; display: grid; gap: 5px; padding: 16px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--text); text-align: left; }

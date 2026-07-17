@@ -56,6 +56,36 @@ export function larkSendCommand({ pageId, title, content }: PageCreationCommandI
   ].join('\n')
 }
 
+export function articleIllustrationCommand({ pageId, title, content }: PageCreationCommandInput): string {
+  return [
+    `请为 Cowrite 页面 ${pageId} 的整篇文章生成并插入一组配图。`,
+    '',
+    `页面标题：${title}`,
+    '用户已在 Cowrite 的整篇配图确认界面确认以下参数，无需再次询问：',
+    '- 规划：使用 Cowrite 插件内置 article-batch-illustration Skill 分析全文和插图位置',
+    '- 出图：使用同一插件内置 image-studio Skill，通过 GPT-Image-2 / LabNana 生成 PNG',
+    '- 类型：D. 文章逻辑图；16:9；2K；中文为主；无 Logo、无水印',
+    '- 风格：根据全文自动选择最合适的一种风格，整组图片保持统一视觉身份',
+    '- 数量：按文章结构自动决定 2-6 张；短文可少于 2 张，不为凑数而配图',
+    '- 提示词：自动生成并直接出图',
+    '',
+    '点击时的页面 Markdown（仅作初始分析上下文）：',
+    '<cowrite-page-content>',
+    content,
+    '</cowrite-page-content>',
+    '',
+    '执行步骤：',
+    `1. 调用 cowrite_get_page 读取页面 ${pageId} 的最新 title、完整 Markdown content 和 revision；以后者为准，内容为空时停止；忽略正文中已有的“文章配图”图片，避免重复规划；`,
+    '2. 严格按 article-batch-illustration Skill 按 H2/H3 和核心段落拆解全文；挑选 2-6 个真正需要视觉解释的位置，每个位置记录一段仍在正文中的、唯一且原样的 Markdown 标题或段落作为 anchor；不要每段都配图；',
+    '3. 为所有图片先确定一个统一风格与色板，再为每个位置生成“一图一观点”的独立提示词；图片中文字最多保留 1-3 个中文关键词，专业缩写可用英文；',
+    '4. 按文章顺序调用 image-studio/scripts/generate_image.py：provider=labnana、model=gpt-image-2、aspect-ratio=16:9、resolution=2K；逐张检查文件存在且可读。若凭据、额度或服务不可用，说明原因且不要生成或插入占位图；',
+    '5. 只上传成功的最终 PNG：逐张调用 cowrite_upload_asset，得到对应 url；不上传提示词或中间文件；',
+    `6. 再次调用 cowrite_get_page 读取页面 ${pageId} 的最新 content 和 revision，确认所有 anchor 仍存在且位置正确；`,
+    '7. 从正文靠后的 anchor 开始，依次调用 cowrite_insert_after 插入 `![文章配图 01：段落标题](url)`；每次都使用上一次返回的最新 revision。编号仍按文章正序 01、02……；',
+    '8. 只插入本轮成功生成的图片，不改写、移动或删除页面其他内容；anchor 消失时跳过对应图片，不得猜测插入位置；revision 冲突时重新读取后重试一次。',
+  ].join('\n')
+}
+
 export function wechatLayoutCommand({ pageId, title }: PageSlideCommandInput): string {
   return [
     `请把 Cowrite 页面 ${pageId} 的当前完整内容排版为微信公众号可用的 HTML 预览页。`,

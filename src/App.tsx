@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 import type { Page } from '../shared/types'
-import { conversationCommand, explainerCommand, illustrateCommand, larkSendCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from './agentCommands'
+import { articleIllustrationCommand, conversationCommand, explainerCommand, illustrateCommand, larkSendCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from './agentCommands'
 import './App.css'
 
 type PageMeta = Omit<Page, 'content'>
@@ -123,6 +123,33 @@ function LayoutModal({ onClose, onChoose }: {
         </button>
       </div>
       <p className="slide-footnote">选择后复制任务，粘贴给 Agent 执行。</p>
+    </div>
+  </div>
+}
+
+function ArticleIllustrationModal({ page, onClose, onConfirm }: {
+  page: Page
+  onClose: () => void
+  onConfirm: () => void
+}) {
+  return <div className="modal-mask" onClick={onClose}>
+    <div className="modal illustration-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="slide-modal-head">
+        <h2>整篇配图</h2>
+        <button className="modal-close" title="关闭" onClick={onClose}>×</button>
+      </div>
+      <div className="illustration-page"><span>当前页面</span><b>{page.title}</b></div>
+      <div className="illustration-specs">
+        <div><span>规划</span><b>自动选择 2-6 处</b></div>
+        <div><span>模型</span><b>GPT-Image-2</b></div>
+        <div><span>画幅</span><b>16:9 · 2K</b></div>
+        <div><span>风格</span><b>全文统一匹配</b></div>
+      </div>
+      <p className="slide-footnote">Agent 会按文章结构生成配图，并分别插入对应段落，不改动正文。</p>
+      <div className="modal-actions">
+        <button onClick={onClose}>取消</button>
+        <button className="primary" onClick={onConfirm}>确认并复制配图任务</button>
+      </div>
     </div>
   </div>
 }
@@ -406,6 +433,7 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false)
   const [cowriteOpen, setCowriteOpen] = useState(false)
   const [layoutOpen, setLayoutOpen] = useState(false)
+  const [illustrationOpen, setIllustrationOpen] = useState(false)
   const [slideOpen, setSlideOpen] = useState(false)
   const [sendOpen, setSendOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<PageMeta | null>(null)
@@ -501,6 +529,17 @@ function App() {
     notify('小红书排版口令已复制，Agent 确认方案后会用 Image2 生成图片组并插回当前页面')
   }
 
+  const copyArticleIllustrationCommand = async () => {
+    if (!activePage) return
+    await navigator.clipboard.writeText(articleIllustrationCommand({
+      pageId: activePage.id,
+      title: activePage.title,
+      content: activePage.content,
+    }))
+    setIllustrationOpen(false)
+    notify('整篇配图任务已复制，Agent 会用 Image2 生成并插入对应段落')
+  }
+
   const copyLarkSendCommand = async () => {
     if (!activePage) return
     await navigator.clipboard.writeText(larkSendCommand({
@@ -549,6 +588,7 @@ function App() {
           />
           <div className="topbar-right">
             <span className={`save-state ${saveState}`}>{saveState === 'saved' ? '已保存' : '保存中…'}</span>
+            <button onClick={() => setIllustrationOpen(true)} title="使用 Image2 为整篇文章配图">配图</button>
             <button onClick={() => setLayoutOpen(true)} title="把当前 Page 排版为公众号或小红书内容">排版</button>
             <button onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">Slide</button>
             <button onClick={() => setCowriteOpen(true)} title="根据当前 Page 内容继续创作">Cowrite</button>
@@ -577,6 +617,11 @@ function App() {
     {layoutOpen && activePage && <LayoutModal
       onClose={() => setLayoutOpen(false)}
       onChoose={copyLayoutCommand}
+    />}
+    {illustrationOpen && activePage && <ArticleIllustrationModal
+      page={activePage}
+      onClose={() => setIllustrationOpen(false)}
+      onConfirm={copyArticleIllustrationCommand}
     />}
     {cowriteOpen && activePage && <CowriteModal
       page={activePage}

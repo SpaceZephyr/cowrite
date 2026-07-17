@@ -6,7 +6,7 @@
 
 <p align="center">
   <img alt="Protocol" src="https://img.shields.io/badge/protocol-MCP-6B7280">
-  <img alt="Bundled skills" src="https://img.shields.io/badge/bundled_skills-7-2563EB">
+  <img alt="Bundled skills" src="https://img.shields.io/badge/bundled_skills-8-2563EB">
   <img alt="Output" src="https://img.shields.io/badge/output-Markdown%20%7C%20PNG%20%7C%20PPTX%20%7C%20HTML-111827">
   <img alt="Runtime" src="https://img.shields.io/badge/runtime-local-16A34A">
 </p>
@@ -28,7 +28,7 @@ Cowrite 是一个本地运行的对话式写作画布。浏览器负责承载和
 请依次运行：
 1. codex plugin marketplace add SpaceZephyr/cowrite --ref main
 2. codex plugin add cowrite@cowrite
-3. codex plugin list，确认 Cowrite、7 个 Skills 和 Cowrite MCP 已安装
+3. codex plugin list，确认 Cowrite、8 个 Skills 和 Cowrite MCP 已安装
 安装完成后告诉我需要新建一个任务来加载插件；新任务中调用 cowrite_get_status，返回本地画布地址。
 ```
 
@@ -54,7 +54,7 @@ codex plugin add cowrite@cowrite
 请依次运行：
 1. claude plugin marketplace add SpaceZephyr/cowrite
 2. claude plugin install cowrite@cowrite --scope user
-3. claude plugin list，确认 Cowrite、7 个 Skills 和 Cowrite MCP 已安装
+3. claude plugin list，确认 Cowrite、8 个 Skills 和 Cowrite MCP 已安装
 安装完成后提醒我运行 /reload-plugins 或新开一个 Claude Code 会话；加载后调用 cowrite_get_status，返回本地画布地址。
 ```
 
@@ -103,16 +103,18 @@ npm run dev
 3. 在编辑器中选中文字，使用浮动工具栏的「配图」「HTML」「优化」或「对话」；「对话」会复制带原文引用的草稿，粘贴到 Agent 输入框后补充修改要求。
 4. 点击每个 Page 顶部的「Slide」，选择 PPT 或 HTML；Agent 使用整篇内容生成 Slides，并把交付链接插回文章顶部。
 5. 点击「排版」，选择公众号或小红书：公众号生成可复制富 HTML；小红书按确认后的策略用 GPT-Image-2 生成 3:4 图片组。
-6. 点击「发送」，可选择飞书、公众号或知乎；飞书确认后通过本机 `lark-cli` 创建云文档，公众号与知乎暂标记为“待完善”。
-7. Agent 读取页面最新 revision，调用指定 Skill 产出结果，再通过 MCP 精确写回。
-8. 编辑器轮询更新，人和 Agent 可以继续编辑同一页面；revision 乐观锁会阻止相互覆盖。
-9. 删除页面时，在左侧目录对应标题最右侧点击删除图标，并在确认弹窗中执行删除。
+6. 点击顶部「配图」，确认后由 Agent 分析整篇文章，使用 GPT-Image-2 生成 2-6 张统一风格的 16:9 配图并插入对应段落。
+7. 点击「发送」，可选择飞书、公众号或知乎；飞书确认后通过本机 `lark-cli` 创建云文档，公众号与知乎暂标记为“待完善”。
+8. Agent 读取页面最新 revision，调用指定 Skill 产出结果，再通过 MCP 精确写回。
+9. 编辑器轮询更新，人和 Agent 可以继续编辑同一页面；revision 乐观锁会阻止相互覆盖。
+10. 删除页面时，在左侧目录对应标题最右侧点击删除图标，并在确认弹窗中执行删除。
 
 ## 内置 Skill 路由
 
 | Cowrite 操作 | 仓库内 Skill | 固定产物与约束 |
 |---|---|---|
 | 配图 | `skills/image-studio` | GPT-Image-2 / LabNana、16:9 PNG、不得静默切换模型 |
+| 整篇配图 | `skills/article-batch-illustration` + `skills/image-studio` | 自动规划 2-6 个锚点、统一风格、逐图安全插入 |
 | HTML | `skills/text-logic-diagram` | 16:9 HTML/PPT 风格单页、内联 CSS + SVG、适合 iframe |
 | 优化 | `skills/ai-writing-assistant` | Method 5 局部改写，只替换选中文字 |
 | Slide | `skills/space-multi-design-ppt` | 智能品牌匹配；原生可编辑 PPTX 或 16:9 HTML deck |
@@ -149,6 +151,7 @@ cp skills/image-studio/.labnana.env.example skills/image-studio/.labnana.env
 scripts/start-plugin.mjs                  自动安装、构建、启动与持久化
 skills/cowrite/SKILL.md                   页面读写与并发规则
 skills/image-studio/                      Image2 生图脚本、风格和提示词模板
+skills/article-batch-illustration/         整篇文章配图规划、统一视觉与安全插入规则
 skills/text-logic-diagram/                HTML/PPT 逻辑图规范与模板
 skills/ai-writing-assistant/              文章创作与局部优化方法
 skills/space-multi-design-ppt/             文章转 PPTX / HTML Slides 工作流
