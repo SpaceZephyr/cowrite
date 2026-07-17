@@ -1,6 +1,6 @@
 {
   "name": "cowrite",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A local AI co-writing canvas with MCP, Image2, slides, WeChat layout, and writing optimization skills.",
   "author": {
     "name": "Space",

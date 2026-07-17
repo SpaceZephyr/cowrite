@@ -27,6 +27,12 @@ def main() -> None:
         buttons = page.get_by_role("button").all_inner_texts()
         print(f"buttons={buttons}")
         page.get_by_title("展开目录").click()
+        page.wait_for_timeout(250)
+        sidebar_box = page.locator("aside.sidebar").bounding_box()
+        workspace_box = page.locator("main.workspace").bounding_box()
+        assert sidebar_box and sidebar_box["width"] >= 239
+        assert workspace_box and workspace_box["x"] >= 239
+        assert page.locator("aside.sidebar").evaluate("node => getComputedStyle(node).position") == "sticky"
         page.get_by_role("button", name="新建页面").click()
         with page.expect_file_chooser() as chooser_info:
             page.get_by_role("tab", name="导入 Markdown").click()
@@ -43,6 +49,12 @@ def main() -> None:
         assert page.get_by_role("button", name="导入页面").is_enabled()
         page.screenshot(path=str(IMPORT_SCREENSHOT), full_page=True)
         page.get_by_role("button", name="取消").click()
+        page.get_by_title("收起目录").click()
+        page.wait_for_timeout(250)
+        collapsed_sidebar = page.locator("aside.sidebar").bounding_box()
+        collapsed_workspace = page.locator("main.workspace").bounding_box()
+        assert collapsed_sidebar and collapsed_sidebar["width"] <= 1
+        assert collapsed_workspace and collapsed_workspace["x"] <= 1
 
         page.get_by_role("button", name="排版", exact=True).click()
         wechat_command = page.evaluate("navigator.clipboard.readText()")

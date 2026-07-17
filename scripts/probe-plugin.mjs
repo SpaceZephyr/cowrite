@@ -23,7 +23,7 @@ const transport = new StdioClientTransport({
   },
   stderr: 'inherit',
 })
-const client = new Client({ name: 'cowrite-plugin-probe', version: '0.6.0' })
+const client = new Client({ name: 'cowrite-plugin-probe', version: '0.6.1' })
 
 try {
   await client.connect(transport)
