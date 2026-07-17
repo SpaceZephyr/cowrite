@@ -43,6 +43,15 @@ describe('cowrite pages', () => {
     expect(command.text).toContain('写一篇 1500 字文章')
   })
 
+  it('creates a page from imported Markdown content', async () => {
+    const app = testApp()
+    const content = '# 导入文章\n\n这是从本地 Markdown 导入的正文。'
+    const page = await request(app).post('/api/pages').send({ title: '导入文章', content }).expect(201)
+    expect(page.body.title).toBe('导入文章')
+    expect(page.body.content).toBe(content)
+    expect(page.body.prompt).toBeUndefined()
+  })
+
   it('omits content in the list but returns it on get', async () => {
     const app = testApp()
     const list = await request(app).get('/api/pages').expect(200)

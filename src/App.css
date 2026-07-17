@@ -71,6 +71,16 @@
 .modal-actions button.primary { border: 0; }
 .modal-actions button:disabled { opacity: .5; cursor: not-allowed; }
 
+.new-page-modes { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 7px; background: #f2f2ef; }
+.new-page-modes button { border: 0; border-radius: 5px; padding: 7px 10px; background: transparent; color: var(--muted); font-size: 12.5px; }
+.new-page-modes button.active { background: #fff; color: var(--text); font-weight: 600; box-shadow: 0 1px 4px #00000012; }
+.modal input.markdown-file-input { display: none; }
+.markdown-picker { width: 100%; min-height: 116px; border: 1px dashed #cbc9c2; border-radius: 8px; background: #fafaf8; color: var(--text); display: grid; place-items: center; align-content: center; gap: 6px; }
+.markdown-picker:hover { border-color: #9f9d96; background: #f7f7f4; }
+.markdown-picker.selected { border-style: solid; border-color: #a8c5b5; background: #f2faf5; }
+.markdown-picker b { font-size: 13px; font-weight: 600; }
+.markdown-picker small { color: var(--faint); font-size: 11px; }
+
 .slide-modal { width: min(440px, calc(100% - 40px)); gap: 14px; }
 .slide-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .slide-modal-head h2 { margin: 0; }

@@ -22,34 +22,82 @@ function NewPageModal({ onClose, onCreated, notify }: {
   onCreated: (page: Page) => void
   notify: (text: string) => void
 }) {
+  const [mode, setMode] = useState<'write' | 'import'>('write')
   const [title, setTitle] = useState('')
   const [prompt, setPrompt] = useState('')
+  const [importedContent, setImportedContent] = useState('')
+  const [importedFileName, setImportedFileName] = useState('')
   const [creating, setCreating] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const chooseImport = () => {
+    setMode('import')
+    fileInputRef.current?.click()
+  }
+
+  const loadMarkdown = async (file?: File) => {
+    if (!file) return
+    if (!/\.(md|markdown)$/i.test(file.name)) {
+      notify('请选择 .md 或 .markdown 文件')
+      return
+    }
+    const content = await file.text()
+    if (!content.trim()) {
+      notify('这个 Markdown 文件是空的')
+      return
+    }
+    if (content.length > 500_000) {
+      notify('Markdown 内容超过 500,000 个字符，暂时无法导入')
+      return
+    }
+    const heading = content.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim()
+    setImportedContent(content)
+    setImportedFileName(file.name)
+    setTitle(heading || file.name.replace(/\.(md|markdown)$/i, ''))
+  }
 
   const create = async () => {
     setCreating(true)
     try {
-      const page = await api<Page>('/api/pages', { method: 'POST', body: JSON.stringify({ title, prompt }) })
-      if (prompt.trim()) {
+      const input = mode === 'import' ? { title, content: importedContent } : { title, prompt }
+      const page = await api<Page>('/api/pages', { method: 'POST', body: JSON.stringify(input) })
+      if (mode === 'write' && prompt.trim()) {
         const command = await (await fetch(`/api/pages/${page.id}/command`)).text()
         await navigator.clipboard.writeText(command)
         notify('页面已创建，口令已复制。粘贴给 Codex，内容会写进这个页面')
+      } else if (mode === 'import') {
+        notify(`已导入 ${importedFileName}`)
       }
       onCreated(page)
+    } catch (error) {
+      notify(error instanceof Error ? error.message : '创建页面失败')
     } finally {
       setCreating(false)
     }
   }
 
   return <div className="modal-mask" onClick={onClose}>
-    <div className="modal" onClick={(event) => event.stopPropagation()}>
+    <div className="modal new-page-modal" onClick={(event) => event.stopPropagation()}>
       <h2>新建页面</h2>
-      <input autoFocus value={title} placeholder="页面标题" onChange={(event) => setTitle(event.target.value)} />
-      <textarea value={prompt} placeholder="想让 Agent 创作什么？（可选）&#10;例如：写一篇 1500 字的文章，讲清楚 Skill 生态的三个层次……&#10;&#10;留空则创建空白页面，自己动手写。" onChange={(event) => setPrompt(event.target.value)} />
+      <div className="new-page-modes" role="tablist" aria-label="新建页面方式">
+        <button className={mode === 'write' ? 'active' : ''} role="tab" aria-selected={mode === 'write'} onClick={() => setMode('write')}>输入内容</button>
+        <button className={mode === 'import' ? 'active' : ''} role="tab" aria-selected={mode === 'import'} onClick={chooseImport}>导入 Markdown</button>
+      </div>
+      <input ref={fileInputRef} className="markdown-file-input" type="file" accept=".md,.markdown,text/markdown,text/plain" onChange={(event) => loadMarkdown(event.target.files?.[0])} />
+      {mode === 'write' ? <>
+        <input autoFocus value={title} placeholder="页面标题" onChange={(event) => setTitle(event.target.value)} />
+        <textarea value={prompt} placeholder="想让 Agent 创作什么？（可选）&#10;例如：写一篇 1500 字的文章，讲清楚 Skill 生态的三个层次……&#10;&#10;留空则创建空白页面，自己动手写。" onChange={(event) => setPrompt(event.target.value)} />
+      </> : <>
+        <button className={`markdown-picker ${importedFileName ? 'selected' : ''}`} onClick={() => fileInputRef.current?.click()}>
+          <b>{importedFileName || '选择 Markdown 文件'}</b>
+          <small>{importedFileName ? '点击可重新选择' : '支持 .md 和 .markdown'}</small>
+        </button>
+        <input value={title} placeholder="导入后的页面标题" onChange={(event) => setTitle(event.target.value)} />
+      </>}
       <div className="modal-actions">
         <button onClick={onClose}>取消</button>
-        <button className="primary" disabled={creating || !title.trim()} onClick={create}>
-          {prompt.trim() ? '创建并复制口令' : '创建空白页'}
+        <button className="primary" disabled={creating || !title.trim() || (mode === 'import' && !importedContent)} onClick={create}>
+          {mode === 'import' ? '导入页面' : prompt.trim() ? '创建并复制口令' : '创建空白页'}
         </button>
       </div>
     </div>
