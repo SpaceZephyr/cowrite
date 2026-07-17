@@ -10,6 +10,7 @@ APP_URL = "http://127.0.0.1:4322/"
 SCREENSHOT = Path("/tmp/cowrite-slide-modal.png")
 IMPORT_SCREENSHOT = Path("/tmp/cowrite-import-modal.png")
 CONVERSATION_SCREENSHOT = Path("/tmp/cowrite-conversation-toolbar.png")
+LAYOUT_SCREENSHOT = Path("/tmp/cowrite-layout-modal.png")
 
 
 def main() -> None:
@@ -88,10 +89,20 @@ def main() -> None:
         assert "引用原文：\n> " in conversation_command
 
         page.get_by_role("button", name="排版", exact=True).click()
+        page.get_by_role("heading", name="选择排版").wait_for()
+        page.screenshot(path=str(LAYOUT_SCREENSHOT), full_page=True)
+        page.get_by_role("button", name="公众号排版").click()
         wechat_command = page.evaluate("navigator.clipboard.readText()")
         assert "space-wechat-layout" in wechat_command
         assert "index.html" in wechat_command
         assert "公众号排版预览" in wechat_command
+
+        page.get_by_role("button", name="排版", exact=True).click()
+        page.get_by_role("button", name="小红书排版").click()
+        xhs_command = page.evaluate("navigator.clipboard.readText()")
+        assert "baoyu-xhs-images" in xhs_command
+        assert "GPT-Image-2 / LabNana" in xhs_command
+        assert "aspect-ratio=3:4" in xhs_command
 
         page.get_by_role("button", name="Slide").click()
         page.get_by_role("heading", name="生成 Slides").wait_for()
@@ -112,10 +123,12 @@ def main() -> None:
         print(f"ppt_command_length={len(ppt_command)}")
         print(f"html_command_length={len(html_command)}")
         print(f"wechat_command_length={len(wechat_command)}")
+        print(f"xhs_command_length={len(xhs_command)}")
         print(f"conversation_command_length={len(conversation_command)}")
         print(f"screenshot={SCREENSHOT}")
         print(f"import_screenshot={IMPORT_SCREENSHOT}")
         print(f"conversation_screenshot={CONVERSATION_SCREENSHOT}")
+        print(f"layout_screenshot={LAYOUT_SCREENSHOT}")
         browser.close()
 
 

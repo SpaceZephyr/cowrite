@@ -33,6 +33,32 @@ export function wechatLayoutCommand({ pageId, title }: PageSlideCommandInput): s
   ].join('\n')
 }
 
+export function xhsLayoutCommand({ pageId, title }: PageSlideCommandInput): string {
+  return [
+    `请把 Cowrite 页面 ${pageId} 的当前完整内容转换为一组小红书图片。`,
+    '',
+    '必须使用 Cowrite 插件随仓库提供的 baoyu-xhs-images Skill 完成内容分析、三套策略、大纲和视觉规范，并使用同一插件内的 image-studio Skill，通过 GPT-Image-2 / LabNana 生成最终图片。不得改用其他小红书或生图 Skill；若凭据、额度或服务不可用，直接说明且不要插入占位图。',
+    '',
+    '用户已经确认图片生成器，无需再次询问：',
+    '- 模型：image-studio 的 GPT-Image-2 / LabNana',
+    '- 画布：小红书竖版 3:4，2K PNG',
+    '- 数量：由 baoyu-xhs-images 根据全文推荐 2-10 张',
+    '- 产物：封面 + 内容页 + 结尾页，只生成一套最终方案',
+    '',
+    '必须保留 baoyu-xhs-images 的确认流程：',
+    '1. 先检查项目级和用户级 EXTEND.md；没有偏好文件时，只执行首次设置并保存后再继续；',
+    `2. 调用 cowrite_get_page 读取页面 ${pageId} 的最新 title、完整 Markdown content 和 revision；内容为空时停止；忽略正文中已有的小红书图片结果；`,
+    '3. 按 Skill 生成 analysis.md，展示内容理解并完成确认 1；',
+    '4. 生成故事驱动、信息密集、视觉优先三套不同策略，展示逐页摘要、风格和元素并完成确认 2；',
+    '5. 把确认后的方案写入 outline.md，为每页生成独立提示词；默认 3:4，封面 sparse，中间页按内容选择 balanced/dense/list/comparison/flow，结尾 sparse；',
+    '6. 按页顺序调用 image-studio/scripts/generate_image.py：provider=labnana、model=gpt-image-2、aspect-ratio=3:4、resolution=2K；所有页面锁定同一色板、字体、人物和装饰规则。若脚本不支持参考图或 session 参数，不得虚构参数，改为在每份提示词中重复完整视觉身份；',
+    '7. 每生成一张就检查文件存在且可读；全部成功后，逐张调用 cowrite_upload_asset 上传，按 01、02…顺序得到 url；',
+    `8. 再次调用 cowrite_get_page 读取页面 ${pageId} 的最新 revision，取第一个 Markdown 标题行作为 anchor；若没有标题，取第一个非空段落；`,
+    `9. 调用 cowrite_insert_after 一次，在 anchor 后插入一个连续 Markdown 图片组，每张一行：\`![小红书图片 01：${title}](url)\`；带 expected_revision；`,
+    '10. revision 冲突时重新读取后重试一次；页面其他内容一字不动，不插入 analysis、outline、prompt 或失败图片。',
+  ].join('\n')
+}
+
 function slideCommand({ pageId, title }: PageSlideCommandInput, format: 'pptx' | 'html'): string {
   const isPptx = format === 'pptx'
   const outputName = isPptx ? '可编辑 PPTX' : 'HTML 幻灯片'

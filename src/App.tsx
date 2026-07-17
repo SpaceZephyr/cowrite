@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 import type { Page } from '../shared/types'
-import { conversationCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand } from './agentCommands'
+import { conversationCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from './agentCommands'
 import './App.css'
 
 type PageMeta = Omit<Page, 'content'>
@@ -100,6 +100,29 @@ function NewPageModal({ onClose, onCreated, notify }: {
           {mode === 'import' ? '导入页面' : prompt.trim() ? '创建并复制口令' : '创建空白页'}
         </button>
       </div>
+    </div>
+  </div>
+}
+
+function LayoutModal({ onClose, onChoose }: {
+  onClose: () => void
+  onChoose: (format: 'wechat' | 'xhs') => void
+}) {
+  return <div className="modal-mask" onClick={onClose}>
+    <div className="modal slide-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="slide-modal-head">
+        <h2>选择排版</h2>
+        <button className="modal-close" title="关闭" onClick={onClose}>×</button>
+      </div>
+      <div className="slide-options">
+        <button className="slide-option" onClick={() => onChoose('wechat')}>
+          <b>公众号排版</b><small>可复制富 HTML</small>
+        </button>
+        <button className="slide-option" onClick={() => onChoose('xhs')}>
+          <b>小红书排版</b><small>Image2 图片组</small>
+        </button>
+      </div>
+      <p className="slide-footnote">选择后复制任务，粘贴给 Agent 执行。</p>
     </div>
   </div>
 }
@@ -275,6 +298,7 @@ function App() {
   const [activePage, setActivePage] = useState<Page | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [layoutOpen, setLayoutOpen] = useState(false)
   const [slideOpen, setSlideOpen] = useState(false)
   const [saveState, setSaveState] = useState<'saved' | 'dirty'>('saved')
   const [toast, setToast] = useState('')
@@ -345,7 +369,16 @@ function App() {
   const copyWechatLayoutCommand = async () => {
     if (!activePage) return
     await navigator.clipboard.writeText(wechatLayoutCommand({ pageId: activePage.id, title: activePage.title }))
+    setLayoutOpen(false)
     notify('公众号排版口令已复制，粘贴给 Agent 后会把 HTML 预览地址插回当前页面')
+  }
+
+  const copyLayoutCommand = async (format: 'wechat' | 'xhs') => {
+    if (format === 'wechat') return copyWechatLayoutCommand()
+    if (!activePage) return
+    await navigator.clipboard.writeText(xhsLayoutCommand({ pageId: activePage.id, title: activePage.title }))
+    setLayoutOpen(false)
+    notify('小红书排版口令已复制，Agent 确认方案后会用 Image2 生成图片组并插回当前页面')
   }
 
   if (!pages) return <div className="loading"><span>C</span><p>正在打开 Cowrite…</p></div>
@@ -384,7 +417,7 @@ function App() {
           />
           <div className="topbar-right">
             <span className={`save-state ${saveState}`}>{saveState === 'saved' ? '已保存' : '保存中…'}</span>
-            <button onClick={copyWechatLayoutCommand} title="把当前 Page 排版为微信公众号 HTML">排版</button>
+            <button onClick={() => setLayoutOpen(true)} title="把当前 Page 排版为公众号或小红书内容">排版</button>
             <button onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">Slide</button>
             <button onClick={copyCommand} title="复制创作口令给 Agent">cowrite</button>
             <button className="danger" onClick={removePage}>删除</button>
@@ -408,6 +441,10 @@ function App() {
     {slideOpen && activePage && <SlideModal
       onClose={() => setSlideOpen(false)}
       onChoose={copySlideCommand}
+    />}
+    {layoutOpen && activePage && <LayoutModal
+      onClose={() => setLayoutOpen(false)}
+      onChoose={copyLayoutCommand}
     />}
     {toast && <div className="toast">✓ {toast}</div>}
   </div>

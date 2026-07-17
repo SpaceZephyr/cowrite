@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { conversationCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand } from '../src/agentCommands.js'
+import { conversationCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from '../src/agentCommands.js'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const input = { pageId: 'page_demo', selection: '这是一段需要处理的文字。' }
@@ -65,14 +65,26 @@ describe('agent command skill routing', () => {
     expect(command).toContain('[公众号排版预览：公众号文章](url)')
   })
 
+  it('routes full-page Xiaohongshu layout through Image2 with required confirmations', () => {
+    const command = xhsLayoutCommand({ pageId: 'page_demo', title: '小红书文章' })
+    expect(command).toContain('baoyu-xhs-images Skill')
+    expect(command).toContain('GPT-Image-2 / LabNana')
+    expect(command).toContain('确认 1')
+    expect(command).toContain('确认 2')
+    expect(command).toContain('aspect-ratio=3:4')
+    expect(command).toContain('cowrite_upload_asset')
+    expect(command).toContain('![小红书图片 01：小红书文章](url)')
+  })
+
   it('packages every routed skill without packaging the local API key', () => {
-    for (const skill of ['cowrite', 'image-studio', 'text-logic-diagram', 'ai-writing-assistant', 'space-multi-design-ppt', 'space-wechat-layout']) {
+    for (const skill of ['cowrite', 'image-studio', 'text-logic-diagram', 'ai-writing-assistant', 'space-multi-design-ppt', 'space-wechat-layout', 'baoyu-xhs-images']) {
       expect(existsSync(path.join(projectRoot, 'skills', skill, 'SKILL.md'))).toBe(true)
     }
     expect(existsSync(path.join(projectRoot, 'skills/image-studio/scripts/generate_image.py'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/text-logic-diagram/assets/template.html'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/space-multi-design-ppt/scripts/build_deck.py'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/space-wechat-layout/assets/static-preview-template.html'))).toBe(true)
+    expect(existsSync(path.join(projectRoot, 'skills/baoyu-xhs-images/references/elements/canvas.md'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/image-studio/.labnana.env'))).toBe(false)
   })
 })
