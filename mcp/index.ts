@@ -23,7 +23,18 @@ function toolResult<T extends object>(value: T) {
 }
 
 export function createCowriteMcpServer() {
-  const server = new McpServer({ name: 'cowrite-mcp-server', version: '0.1.0' })
+  const server = new McpServer({ name: 'cowrite-mcp-server', version: '0.3.0' })
+
+  server.registerTool(
+    'cowrite_get_status',
+    {
+      title: 'Get Cowrite status and canvas URL',
+      description: 'Check that the local Cowrite service is ready and return the browser canvas URL. Use when the user asks to start, open, or locate Cowrite.',
+      inputSchema: {},
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async () => toolResult({ ...(await api<Record<string, unknown>>('/api/health')), canvasUrl: baseUrl }),
+  )
 
   server.registerTool(
     'cowrite_list_pages',

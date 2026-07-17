@@ -1,12 +1,14 @@
 {
   "name": "cowrite",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n WEB,API -c cyan,green \"vite\" \"tsx watch server/index.ts\"",
     "start:api": "tsx server/index.ts",
     "mcp": "tsx mcp/index.ts",
+    "start:plugin": "node scripts/start-plugin.mjs",
+    "probe:plugin": "node scripts/probe-plugin.mjs",
     "build": "tsc -b && tsc -p tsconfig.server.json --noEmit && vite build",
     "test": "vitest run",
     "preview": "vite preview"

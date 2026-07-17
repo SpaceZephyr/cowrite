@@ -1,0 +1,24 @@
+{
+  "name": "cowrite",
+  "description": "Install Cowrite's local writing canvas, MCP tools, and bundled content Skills for Claude Code.",
+  "owner": {
+    "name": "Space",
+    "url": "https://github.com/SpaceZephyr"
+  },
+  "plugins": [
+    {
+      "name": "cowrite",
+      "source": "./",
+      "description": "Local AI co-writing canvas with MCP, Image2, HTML diagrams, and writing optimization skills.",
+      "version": "0.3.0",
+      "author": {
+        "name": "Space"
+      },
+      "homepage": "https://github.com/SpaceZephyr/cowrite",
+      "repository": "https://github.com/SpaceZephyr/cowrite",
+      "license": "MIT",
+      "keywords": ["writing", "markdown", "mcp", "image2", "codex", "claude-code"],
+      "category": "productivity"
+    }
+  ]
+}

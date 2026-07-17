@@ -13,16 +13,88 @@
 
 <p align="center">MIT · Codex / Claude Code compatible · Contact: Space</p>
 
-Cowrite 是一个本地运行的对话式写作画布。浏览器负责承载和编辑文章，Codex / Claude Code 通过 MCP 读写同一份数据；配图、HTML 解释图和文章优化由仓库内置 Skill 完成，不再依赖临时拼装的通用提示词。
+Cowrite 是一个本地运行的对话式写作画布。浏览器负责承载和编辑文章，Codex / Claude Code 通过 MCP 读写同一份数据；配图、HTML 解释图和文章优化由仓库内置 Skill 完成。它同时提供 Codex 与 Claude Code marketplace，安装后会自动准备依赖、构建前端并启动本地服务。
 
-## 快速启动
+## 安装
+
+要求：Node.js 20.19+（或 22.12+）、npm，以及已登录的 Codex CLI 或 Claude Code。
+
+### 让 Codex 自动安装
+
+把下面这段口令发给 Codex：
+
+```text
+请安装 Cowrite：https://github.com/SpaceZephyr/cowrite.git
+请依次运行：
+1. codex plugin marketplace add SpaceZephyr/cowrite --ref main
+2. codex plugin add cowrite@cowrite
+3. codex plugin list，确认 Cowrite、4 个 Skills 和 Cowrite MCP 已安装
+安装完成后告诉我需要新建一个任务来加载插件；新任务中调用 cowrite_get_status，返回本地画布地址。
+```
+
+也可以直接在终端安装：
 
 ```bash
+codex plugin marketplace add SpaceZephyr/cowrite --ref main
+codex plugin add cowrite@cowrite
+```
+
+安装后新建一个 Codex 任务，然后说：
+
+```text
+启动 Cowrite，并告诉我本地画布地址。
+```
+
+### 让 Claude Code 自动安装
+
+把下面这段口令发给 Claude Code：
+
+```text
+请安装 Cowrite：https://github.com/SpaceZephyr/cowrite.git
+请依次运行：
+1. claude plugin marketplace add SpaceZephyr/cowrite
+2. claude plugin install cowrite@cowrite --scope user
+3. claude plugin list，确认 Cowrite、4 个 Skills 和 Cowrite MCP 已安装
+安装完成后提醒我运行 /reload-plugins 或新开一个 Claude Code 会话；加载后调用 cowrite_get_status，返回本地画布地址。
+```
+
+也可以在 Claude Code 中手动执行：
+
+```text
+/plugin marketplace add SpaceZephyr/cowrite
+/plugin install cowrite@cowrite
+/reload-plugins
+```
+
+或直接使用终端命令：
+
+```bash
+claude plugin marketplace add SpaceZephyr/cowrite
+claude plugin install cowrite@cowrite --scope user
+```
+
+### 首次启动会发生什么
+
+插件的 MCP 首次加载时会自动：
+
+1. 检查并安装 npm 依赖；
+2. 构建 Cowrite 浏览器前端；
+3. 在 `http://127.0.0.1:4320` 启动生产服务；
+4. 注册 Cowrite MCP 工具；
+5. 将页面和资产持久化到 `~/.cowrite/`。
+
+首次启动可能需要几十秒。服务仅监听本机，不会把文章上传到远端。插件会话结束时，由插件启动的服务也会停止；下一次加载会自动恢复。
+
+## 从源码运行
+
+```bash
+git clone https://github.com/SpaceZephyr/cowrite.git
+cd cowrite
 npm install
 npm run dev
 ```
 
-默认打开 [http://127.0.0.1:4321](http://127.0.0.1:4321)，API 位于 `127.0.0.1:4320`，页面数据保存在 `data/cowrite.json`。若 `4321` 被占用，Vite 会在终端显示自动切换后的地址。
+开发模式默认打开 [http://127.0.0.1:4321](http://127.0.0.1:4321)，API 位于 `127.0.0.1:4320`，测试页面数据保存在 `data/cowrite.json`。若 `4321` 被占用，Vite 会在终端显示自动切换后的地址。
 
 ## 写作工作流
 
@@ -56,38 +128,43 @@ export LABNANA_API_KEY="your-key"
 cp skills/image-studio/.labnana.env.example skills/image-studio/.labnana.env
 ```
 
-`.labnana.env` 已加入 `.gitignore`。Image2 的中间产物保存在 `data/generated/image-studio/`，上传后的 Cowrite 资产保存在 `data/assets/`。
+`.labnana.env` 已加入 `.gitignore`。通过 marketplace 安装时，推荐在启动 Codex / Claude Code 前设置环境变量；从源码运行时也可以使用本地 `.labnana.env`。Image2 的中间产物不会进入 Git。
 
 ## Agent 接入
 
 ```text
 .codex-plugin/plugin.json                 Codex 插件描述与 Skill 入口
-.mcp.json                                 stdio MCP 配置
+.agents/plugins/marketplace.json          Codex marketplace
+.claude-plugin/plugin.json                Claude Code 插件描述
+.claude-plugin/marketplace.json           Claude Code marketplace
+.mcp.json                                 Codex / Claude Code 双端 MCP 启动配置
+scripts/start-plugin.mjs                  自动安装、构建、启动与持久化
 skills/cowrite/SKILL.md                   页面读写与并发规则
 skills/image-studio/                      Image2 生图脚本、风格和提示词模板
 skills/text-logic-diagram/                HTML/PPT 逻辑图规范与模板
 skills/ai-writing-assistant/              文章创作与局部优化方法
 ```
 
-MCP 提供六个工具：`cowrite_list_pages`、`cowrite_get_page`、`cowrite_create_page`、`cowrite_update_page`、`cowrite_upload_asset` 和 `cowrite_insert_after`。
+MCP 提供七个工具：`cowrite_get_status`、`cowrite_list_pages`、`cowrite_get_page`、`cowrite_create_page`、`cowrite_update_page`、`cowrite_upload_asset` 和 `cowrite_insert_after`。
 
-Codex 可将本目录作为 personal marketplace 插件安装。Claude Code 在本目录启动时会读取 `.mcp.json`；也可以手动注册：
+如果只想临时加载本地源码而不安装 marketplace，也可以使用 Claude Code 的开发参数：
 
 ```bash
-claude mcp add cowrite -- npx -y tsx /absolute/path/to/cowrite/mcp/index.ts
+claude --plugin-dir /absolute/path/to/cowrite
 ```
 
-使用 Agent 前需保持 `npm run dev` 运行。
+插件模式不需要手动保持 `npm run dev`；自启动运行器会管理生产服务。源码开发时仍使用 `npm run dev`。
 
 ## 架构
 
 ```text
 浏览器 Vditor ───────────────┐
-                             ├─> Express API ─> data/cowrite.json
-Agent + bundled Skills ─MCP──┘                  └─> data/assets/
+                             ├─> Express API ─> ~/.cowrite/cowrite.json
+Codex / Claude + Skills ─MCP─┘                  └─> ~/.cowrite/assets/
 ```
 
 - 服务只监听 `127.0.0.1`，网页本身不执行 Agent 或 Skill。
+- marketplace 安装模式使用 `~/.cowrite/` 持久化；源码开发模式使用仓库内 `data/`。
 - 列表接口不返回正文，Agent 只在需要时读取完整页面，减少上下文消耗。
 - 带 `prompt` 且 `revision = 1` 的页面会显示为“等待 Agent 创作”。
 - 图片和 HTML 先进入 Cowrite 资产库，再以 Markdown 图片或 iframe 插入锚点段落后。
@@ -97,4 +174,5 @@ Agent + bundled Skills ─MCP──┘                  └─> data/assets/
 ```bash
 npm test
 npm run build
+npm run probe:plugin
 ```

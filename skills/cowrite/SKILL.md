@@ -5,17 +5,18 @@ description: Write or edit Markdown pages in the user's local Cowrite canvas. Us
 
 # Cowrite
 
-Cowrite is a local Notion-like writing canvas at `http://127.0.0.1:4321` (API on `127.0.0.1:4320`). The user sees every page in a live browser editor and can edit at any time. You operate the same pages through the `cowrite_*` MCP tools; your writes appear in the user's editor within seconds.
+Cowrite is a local Notion-like writing canvas. An installed plugin automatically prepares and starts the production canvas at `http://127.0.0.1:4320`; source development uses Vite (normally `http://127.0.0.1:4321`). The user sees every page in a live browser editor and can edit at any time. You operate the same pages through the `cowrite_*` MCP tools; your writes appear in the user's editor within seconds.
 
 ## Tools
 
-1. `cowrite_list_pages` — list pages (title, creation prompt, revision; no content). Pages with a `prompt` and `revision: 1` are waiting to be written.
-2. `cowrite_get_page` — read one page with full Markdown content and current `revision`. Always call immediately before updating.
-3. `cowrite_create_page` — create a page with finished Markdown content. Use when the user says "在 cowrite 里创建/写一篇 …".
-4. `cowrite_update_page` — replace a page's Markdown content. Requires `expected_revision` from `cowrite_get_page`.
+1. `cowrite_get_status` — verify the service and return the local browser canvas URL. Use when the user asks to start/open Cowrite.
+2. `cowrite_list_pages` — list pages (title, creation prompt, revision; no content). Pages with a `prompt` and `revision: 1` are waiting to be written.
+3. `cowrite_get_page` — read one page with full Markdown content and current `revision`. Always call immediately before updating.
+4. `cowrite_create_page` — create a page with finished Markdown content. Use when the user says "在 cowrite 里创建/写一篇 …".
+5. `cowrite_update_page` — replace a page's Markdown content. Requires `expected_revision` from `cowrite_get_page`.
 
-5. `cowrite_upload_asset` — copy a local image or self-contained HTML file into Cowrite's asset store; returns a `/assets/...` url.
-6. `cowrite_insert_after` — insert one Markdown/HTML block right after the paragraph containing an exact anchor substring. Requires `expected_revision`.
+6. `cowrite_upload_asset` — copy a local image or self-contained HTML file into Cowrite's asset store; returns a `/assets/...` url.
+7. `cowrite_insert_after` — insert one Markdown/HTML block right after the paragraph containing an exact anchor substring. Requires `expected_revision`.
 
 ## Typical tasks
 
@@ -36,4 +37,4 @@ Cowrite is a local Notion-like writing canvas at `http://127.0.0.1:4321` (API on
 
 ## Service check
 
-If tools cannot connect, tell the user to run `npm run dev` in the cowrite project directory (`05 garage/cowrite`), then retry.
+Installed plugin: the MCP runner starts the production canvas automatically. Call `cowrite_get_status`; if startup failed, report its stderr message (Node/npm, port 4320, build, or permissions) and retry after fixing it. Source development: run `npm run dev` in the Cowrite repository.

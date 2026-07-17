@@ -1,6 +1,9 @@
 ---
 name: ai-writing-assistant
-description: AI-powered writing assistant for social media content creation. Provides 6 structured writing methods: conversational writing, outline-based writing, completion-style writing, inspiration generation, revision optimization, and material integration. Use when users need help with: (1) Writing social media posts, articles, or content, (2) Overcoming writer's block or difficulty expressing ideas, (3) Structuring thoughts and improving writing quality, (4) Integrating multiple sources into coherent content.
+description: >-
+  AI-powered writing assistant for social media content creation. Provides six
+  structured methods for writing, outlining, completion, inspiration,
+  revision optimization, and material integration.
 ---
 
 # AI Writing Assistant

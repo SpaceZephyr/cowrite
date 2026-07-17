@@ -1,8 +1,13 @@
 {
   "name": "cowrite",
-  "version": "0.2.0",
-  "description": "Cowrite Codex plugin: a local writing canvas with bundled Image2, HTML diagram, and writing optimization skills.",
-  "author": { "name": "Space" },
+  "version": "0.3.0",
+  "description": "A local AI co-writing canvas with MCP, Image2, HTML diagrams, and writing optimization skills.",
+  "author": {
+    "name": "Space",
+    "url": "https://github.com/SpaceZephyr"
+  },
+  "homepage": "https://github.com/SpaceZephyr/cowrite",
+  "repository": "https://github.com/SpaceZephyr/cowrite",
   "license": "MIT",
   "keywords": ["cowrite", "writing", "markdown", "editor", "codex", "mcp"],
   "mcpServers": "./.mcp.json",
@@ -10,12 +15,16 @@
   "interface": {
     "displayName": "Cowrite",
     "shortDescription": "Co-write Markdown pages in a local browser canvas",
+    "longDescription": "Cowrite starts a private local writing canvas and lets Codex create, revise, illustrate, and structure Markdown pages through revision-safe MCP tools and bundled Skills.",
+    "developerName": "Space",
     "category": "Productivity",
+    "websiteURL": "https://github.com/SpaceZephyr/cowrite",
+    "brandColor": "#2563EB",
     "capabilities": ["Read", "Write", "Generate images", "Create HTML diagrams", "Polish writing"],
     "defaultPrompt": [
+      "启动 Cowrite 并告诉我本地画布地址",
       "在 cowrite 里创建一篇文章",
-      "修改 cowrite 里的某个页面",
-      "完成 cowrite 中等待创作的页面"
+      "修改 cowrite 里的某个页面"
     ]
   }
 }

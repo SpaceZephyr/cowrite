@@ -23,6 +23,17 @@ function testApp() {
 }
 
 describe('cowrite pages', () => {
+  it('registers the production SPA fallback with Express 5 routing', () => {
+    const previous = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
+    try {
+      expect(() => testApp()).not.toThrow()
+    } finally {
+      if (previous === undefined) delete process.env.NODE_ENV
+      else process.env.NODE_ENV = previous
+    }
+  })
+
   it('creates a page with a prompt and builds a command', async () => {
     const app = testApp()
     const page = await request(app).post('/api/pages').send({ title: 'Skill 生态', prompt: '写一篇 1500 字文章' }).expect(201)

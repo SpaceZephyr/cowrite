@@ -1,8 +1,11 @@
 {
   "mcpServers": {
     "cowrite": {
-      "command": "npx",
-      "args": ["-y", "tsx", "mcp/index.ts"],
+      "command": "node",
+      "args": [
+        "-e",
+        "const path=require('node:path');const url=require('node:url');const root=process.env.CLAUDE_PLUGIN_ROOT||process.cwd();import(url.pathToFileURL(path.join(root,'scripts/start-plugin.mjs')).href)"
+      ],
       "cwd": "."
     }
   }

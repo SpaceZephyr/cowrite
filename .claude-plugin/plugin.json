@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
+  "name": "cowrite",
+  "version": "0.3.0",
+  "description": "Local AI co-writing canvas with MCP, Image2, HTML diagrams, and writing optimization skills.",
+  "author": {
+    "name": "Space"
+  },
+  "homepage": "https://github.com/SpaceZephyr/cowrite",
+  "repository": "https://github.com/SpaceZephyr/cowrite",
+  "license": "MIT",
+  "keywords": ["writing", "markdown", "mcp", "image2", "codex", "claude-code"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

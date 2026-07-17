@@ -1,0 +1,21 @@
+{
+  "name": "cowrite",
+  "interface": {
+    "displayName": "Cowrite"
+  },
+  "plugins": [
+    {
+      "name": "cowrite",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/SpaceZephyr/cowrite.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
