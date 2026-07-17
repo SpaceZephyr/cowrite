@@ -12,6 +12,7 @@ IMPORT_SCREENSHOT = Path("/tmp/cowrite-import-modal.png")
 CONVERSATION_SCREENSHOT = Path("/tmp/cowrite-conversation-toolbar.png")
 LAYOUT_SCREENSHOT = Path("/tmp/cowrite-layout-modal.png")
 COWRITE_SCREENSHOT = Path("/tmp/cowrite-creation-modal.png")
+SEND_SCREENSHOT = Path("/tmp/cowrite-send-modal.png")
 
 
 def main() -> None:
@@ -105,17 +106,44 @@ def main() -> None:
         assert "GPT-Image-2 / LabNana" in xhs_command
         assert "aspect-ratio=3:4" in xhs_command
 
-        page.get_by_role("button", name="cowrite", exact=True).click()
+        active_content = page.evaluate("""async () => {
+            const pages = await fetch('/api/pages').then((response) => response.json())
+            const activeTitle = document.querySelector('.title-input').value
+            const active = pages.find((item) => item.title === activeTitle)
+            return fetch(`/api/pages/${active.id}`).then((response) => response.json()).then((item) => item.content)
+        }""")
+        page.get_by_role("button", name="Cowrite", exact=True).click()
         page.get_by_role("heading", name="Cowrite", exact=True).wait_for()
-        page.get_by_text("按页面内容进行创作", exact=True).wait_for()
+        page.get_by_role("button", name="按页面内容为要求创作").click()
+        page_command = page.evaluate("navigator.clipboard.readText()")
+        assert "以当前页面全文作为创作要求" in page_command
+        assert active_content in page_command
+
+        page.get_by_role("button", name="Cowrite", exact=True).click()
+        page.get_by_role("button", name="输入自定义创作要求").click()
         requirement_input = page.get_by_placeholder("请输入创作要求")
         requirement_input.fill("续写一个真实案例")
         page.screenshot(path=str(COWRITE_SCREENSHOT), full_page=True)
-        page.get_by_role("button", name="复制任务").click()
+        page.get_by_role("button", name="复制并发送到对话框").click()
         creation_command = page.evaluate("navigator.clipboard.readText()")
         assert "创作要求：续写一个真实案例" in creation_command
+        assert "<cowrite-page-content>" in creation_command
+        assert active_content in creation_command
         assert "cowrite_get_page" in creation_command
         assert "cowrite_update_page" in creation_command
+
+        page.get_by_role("button", name="发送", exact=True).click()
+        page.get_by_role("heading", name="发送", exact=True).wait_for()
+        page.wait_for_timeout(250)
+        page.screenshot(path=str(SEND_SCREENSHOT), full_page=True)
+        expect(page.get_by_role("button", name="公众号 待完善")).to_be_disabled()
+        expect(page.get_by_role("button", name="知乎 待完善")).to_be_disabled()
+        page.get_by_role("button", name="飞书").click()
+        page.get_by_text("发送到飞书？", exact=True).wait_for()
+        page.get_by_role("button", name="确认并复制发送任务").click()
+        lark_command = page.evaluate("navigator.clipboard.readText()")
+        assert "lark-cli docs +create --api-version v2" in lark_command
+        assert active_content in lark_command
 
         page.get_by_role("button", name="Slide").click()
         page.get_by_role("heading", name="生成 Slides").wait_for()
@@ -144,6 +172,7 @@ def main() -> None:
         print(f"conversation_screenshot={CONVERSATION_SCREENSHOT}")
         print(f"layout_screenshot={LAYOUT_SCREENSHOT}")
         print(f"cowrite_screenshot={COWRITE_SCREENSHOT}")
+        print(f"send_screenshot={SEND_SCREENSHOT}")
         browser.close()
 
 

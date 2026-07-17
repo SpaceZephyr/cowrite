@@ -2,19 +2,30 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { conversationCommand, explainerCommand, illustrateCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from '../src/agentCommands.js'
+import { conversationCommand, explainerCommand, illustrateCommand, larkSendCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from '../src/agentCommands.js'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const input = { pageId: 'page_demo', selection: '这是一段需要处理的文字。' }
 
 describe('agent command skill routing', () => {
   it('creates a requirement-driven task from the current page', () => {
-    const command = pageCreationCommand({ pageId: 'page_demo', title: '原文章' }, '续写一个案例')
+    const command = pageCreationCommand({ pageId: 'page_demo', title: '原文章', content: '# 原文章\n\n已有正文。' }, '续写一个案例')
     expect(command).toContain('页面标题：原文章')
     expect(command).toContain('创作要求：续写一个案例')
+    expect(command).toContain('# 原文章\n\n已有正文。')
+    expect(command).toContain('<cowrite-page-content>')
     expect(command).toContain('cowrite_get_page')
     expect(command).toContain('cowrite_update_page')
     expect(command).toContain('不要无故删除原文')
+  })
+
+  it('routes confirmed Feishu publishing through lark-cli v2', () => {
+    const command = larkSendCommand({ pageId: 'page_demo', title: '飞书文章', content: '# 飞书文章\n\n正文。' })
+    expect(command).toContain('用户已经在 Cowrite 的发送确认界面明确确认')
+    expect(command).toContain('lark-cli docs +create --api-version v2')
+    expect(command).toContain('--as user --doc-format markdown')
+    expect(command).toContain('# 飞书文章\n\n正文。')
+    expect(command).toContain('document.url')
   })
 
   it('routes illustration commands to bundled Image2 without silent fallback', () => {

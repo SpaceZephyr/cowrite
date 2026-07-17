@@ -8,19 +8,51 @@ type PageSlideCommandInput = {
   title: string
 }
 
-export function pageCreationCommand({ pageId, title }: PageSlideCommandInput, requirement: string): string {
+type PageCreationCommandInput = PageSlideCommandInput & {
+  content: string
+}
+
+export function pageCreationCommand({ pageId, title, content }: PageCreationCommandInput, requirement: string): string {
   return [
     `请根据 Cowrite 页面 ${pageId} 的当前完整内容继续创作。`,
     '',
     `页面标题：${title}`,
     `创作要求：${requirement}`,
     '',
+    '当前页面 Markdown（创作上下文）：',
+    '<cowrite-page-content>',
+    content,
+    '</cowrite-page-content>',
+    '',
     '执行规则：',
-    `1. 调用 cowrite_get_page 读取页面 ${pageId} 的最新 title、完整 Markdown content 和 revision；把全文作为创作上下文和写回目标；`,
+    `1. 上面的 Markdown 是用户点击选项时复制的当前页面内容，直接作为本轮创作上下文；写回前调用 cowrite_get_page 读取页面 ${pageId} 的最新 title、完整 Markdown content 和 revision；`,
     '2. 选择 Cowrite 插件内与创作要求最匹配的 Skill；保持页面已有事实、作者口吻和 Markdown 结构；',
     '3. 若要求是续写、补充或生成衍生内容，把新内容自然追加到当前正文；若明确要求改写或替换，才修改对应内容；不要无故删除原文；',
     '4. 调用 cowrite_update_page 写回完整正文，必须带 expected_revision；',
     '5. revision 冲突时重新读取，合并用户最新修改后重试一次。',
+  ].join('\n')
+}
+
+export function larkSendCommand({ pageId, title, content }: PageCreationCommandInput): string {
+  return [
+    '请把下面的 Cowrite 本地 Markdown 内容发送为一篇新的飞书云文档。',
+    '',
+    `Cowrite 页面：${pageId}`,
+    `文档标题：${title}`,
+    '用户已经在 Cowrite 的发送确认界面明确确认创建飞书文档，无需再次询问是否发送。',
+    '',
+    '待发送的当前页面 Markdown：',
+    '<cowrite-page-content>',
+    content,
+    '</cowrite-page-content>',
+    '',
+    '执行要求：',
+    '1. 必须使用本机 lark-cli 和已安装的 lark-doc Skill；先完整读取 lark-doc Skill 及其要求的 lark-shared、lark-doc-md 和创建流程说明；',
+    '2. 检查 lark-cli 是否可用及 user 身份认证状态。若尚未配置或授权，严格按 lark-shared 的 split-flow 发起最小权限授权，把原始授权 URL 和二维码交给用户，然后暂停等待用户完成；不得输出任何密钥；',
+    '3. 保持上面的 Markdown 标题、正文、链接、图片和顺序，不做改写；若正文没有一级标题，在临时副本顶部补充文档标题；',
+    '4. 将最终 Markdown 安全保存到本地临时 .md 文件，使用文件传参避免 shell 转义或命令替换；',
+    '5. 执行 `lark-cli docs +create --api-version v2 --as user --doc-format markdown --content @<临时文件绝对路径>`；只创建一篇文档；',
+    '6. 检查返回结果 ok=true，并把 document.url 作为可点击链接返回给用户；失败时说明准确原因，不重复创建，不修改 Cowrite 原页面。',
   ].join('\n')
 }
 

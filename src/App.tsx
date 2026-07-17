@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 import type { Page } from '../shared/types'
-import { conversationCommand, explainerCommand, illustrateCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from './agentCommands'
+import { conversationCommand, explainerCommand, illustrateCommand, larkSendCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from './agentCommands'
 import './App.css'
 
 type PageMeta = Omit<Page, 'content'>
@@ -127,11 +127,13 @@ function LayoutModal({ onClose, onChoose }: {
   </div>
 }
 
-function CowriteModal({ page, onClose, onSubmit }: {
+function CowriteModal({ page, onClose, onUsePage, onSubmit }: {
   page: Page
   onClose: () => void
+  onUsePage: () => void
   onSubmit: (requirement: string) => void
 }) {
+  const [mode, setMode] = useState<'choose' | 'page'>('choose')
   const [requirement, setRequirement] = useState('')
   return <div className="modal-mask" onClick={onClose}>
     <div className="modal cowrite-modal" onClick={(event) => event.stopPropagation()}>
@@ -139,15 +141,31 @@ function CowriteModal({ page, onClose, onSubmit }: {
         <h2>Cowrite</h2>
         <button className="modal-close" title="关闭" onClick={onClose}>×</button>
       </div>
-      <div className="cowrite-mode">
-        <b>按页面内容进行创作</b>
-        <small>{page.title}</small>
-      </div>
-      <textarea autoFocus value={requirement} placeholder="请输入创作要求" onChange={(event) => setRequirement(event.target.value)} />
-      <div className="modal-actions">
-        <button onClick={onClose}>取消</button>
-        <button className="primary" disabled={!requirement.trim()} onClick={() => onSubmit(requirement.trim())}>复制任务</button>
-      </div>
+      {mode === 'choose' ? <>
+        <div className="cowrite-options">
+          <button className="cowrite-mode" onClick={onUsePage}>
+            <b>按页面内容为要求创作</b>
+            <small>直接复制当前页面全文</small>
+          </button>
+          <button className="cowrite-mode" onClick={() => setMode('page')}>
+            <b>输入自定义创作要求</b>
+            <small>填写你的具体创作任务</small>
+          </button>
+        </div>
+        <p className="slide-footnote">二选一，任务会复制到 Codex / Claude Code 对话框。</p>
+      </> : <>
+        <div className="cowrite-current-page">
+          <span>当前页面</span>
+          <b>{page.title}</b>
+        </div>
+        <textarea autoFocus value={requirement} placeholder="请输入创作要求" onChange={(event) => setRequirement(event.target.value)} />
+        <div className="modal-actions cowrite-actions">
+          <button onClick={() => setMode('choose')}>返回</button>
+          <span />
+          <button onClick={onClose}>取消</button>
+          <button className="primary" disabled={!requirement.trim()} onClick={() => onSubmit(requirement.trim())}>复制并发送到对话框</button>
+        </div>
+      </>}
     </div>
   </div>
 }
@@ -171,6 +189,47 @@ function SlideModal({ onClose, onChoose }: {
         </button>
       </div>
       <p className="slide-footnote">选择格式后，粘贴给 Agent 即可生成并回写链接。</p>
+    </div>
+  </div>
+}
+
+function SendModal({ page, onClose, onSendLark }: {
+  page: Page
+  onClose: () => void
+  onSendLark: () => void
+}) {
+  const [target, setTarget] = useState<'choose' | 'lark'>('choose')
+  return <div className="modal-mask" onClick={onClose}>
+    <div className="modal send-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="slide-modal-head">
+        <h2>发送</h2>
+        <button className="modal-close" title="关闭" onClick={onClose}>×</button>
+      </div>
+      {target === 'choose' ? <>
+        <div className="send-options">
+          <button className="slide-option" onClick={() => setTarget('lark')}>
+            <b>飞书</b><small>通过 lark-cli 创建云文档</small>
+          </button>
+          <button className="slide-option pending" disabled>
+            <b>公众号 <em>待完善</em></b><small>暂未开放</small>
+          </button>
+          <button className="slide-option pending" disabled>
+            <b>知乎 <em>待完善</em></b><small>暂未开放</small>
+          </button>
+        </div>
+        <p className="slide-footnote">选择要发送的社交媒体。</p>
+      </> : <>
+        <div className="send-confirm">
+          <b>发送到飞书？</b>
+          <p>将当前页面“{page.title}”作为一篇新的飞书云文档推送。</p>
+        </div>
+        <div className="modal-actions cowrite-actions">
+          <button onClick={() => setTarget('choose')}>返回</button>
+          <span />
+          <button onClick={onClose}>取消</button>
+          <button className="primary" onClick={onSendLark}>确认并复制发送任务</button>
+        </div>
+      </>}
     </div>
   </div>
 }
@@ -326,6 +385,7 @@ function App() {
   const [cowriteOpen, setCowriteOpen] = useState(false)
   const [layoutOpen, setLayoutOpen] = useState(false)
   const [slideOpen, setSlideOpen] = useState(false)
+  const [sendOpen, setSendOpen] = useState(false)
   const [saveState, setSaveState] = useState<'saved' | 'dirty'>('saved')
   const [toast, setToast] = useState('')
 
@@ -385,9 +445,13 @@ function App() {
 
   const copyPageCreationCommand = async (requirement: string) => {
     if (!activePage) return
-    await navigator.clipboard.writeText(pageCreationCommand({ pageId: activePage.id, title: activePage.title }, requirement))
+    await navigator.clipboard.writeText(pageCreationCommand({ pageId: activePage.id, title: activePage.title, content: activePage.content }, requirement))
     setCowriteOpen(false)
-    notify('Cowrite 创作任务已复制，粘贴给 Agent 后会按当前页面内容继续创作')
+    notify('当前页面和创作要求已复制，请粘贴到 Codex / Claude Code 对话框')
+  }
+
+  const copyCurrentPageCreationCommand = async () => {
+    await copyPageCreationCommand('以当前页面全文作为创作要求，围绕其中的主题、信息和结构进行创作。')
   }
 
   const copySlideCommand = async (format: 'pptx' | 'html') => {
@@ -412,6 +476,17 @@ function App() {
     await navigator.clipboard.writeText(xhsLayoutCommand({ pageId: activePage.id, title: activePage.title }))
     setLayoutOpen(false)
     notify('小红书排版口令已复制，Agent 确认方案后会用 Image2 生成图片组并插回当前页面')
+  }
+
+  const copyLarkSendCommand = async () => {
+    if (!activePage) return
+    await navigator.clipboard.writeText(larkSendCommand({
+      pageId: activePage.id,
+      title: activePage.title,
+      content: activePage.content,
+    }))
+    setSendOpen(false)
+    notify('飞书发送任务已复制，请粘贴到 Codex / Claude Code 对话框执行')
   }
 
   if (!pages) return <div className="loading"><span>C</span><p>正在打开 Cowrite…</p></div>
@@ -452,7 +527,8 @@ function App() {
             <span className={`save-state ${saveState}`}>{saveState === 'saved' ? '已保存' : '保存中…'}</span>
             <button onClick={() => setLayoutOpen(true)} title="把当前 Page 排版为公众号或小红书内容">排版</button>
             <button onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">Slide</button>
-            <button onClick={() => setCowriteOpen(true)} title="根据当前 Page 内容继续创作">cowrite</button>
+            <button onClick={() => setCowriteOpen(true)} title="根据当前 Page 内容继续创作">Cowrite</button>
+            <button onClick={() => setSendOpen(true)} title="把当前 Page 发送到社交媒体">发送</button>
             <button className="danger" onClick={removePage}>删除</button>
           </div>
         </>}
@@ -482,7 +558,13 @@ function App() {
     {cowriteOpen && activePage && <CowriteModal
       page={activePage}
       onClose={() => setCowriteOpen(false)}
+      onUsePage={copyCurrentPageCreationCommand}
       onSubmit={copyPageCreationCommand}
+    />}
+    {sendOpen && activePage && <SendModal
+      page={activePage}
+      onClose={() => setSendOpen(false)}
+      onSendLark={copyLarkSendCommand}
     />}
     {toast && <div className="toast">✓ {toast}</div>}
   </div>
