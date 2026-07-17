@@ -34,6 +34,11 @@ def main() -> None:
         assert sidebar_box and sidebar_box["width"] >= 239
         assert workspace_box and workspace_box["x"] >= 239
         assert page.locator("aside.sidebar").evaluate("node => getComputedStyle(node).position") == "sticky"
+        assert page.locator(".sidebar nav").evaluate("node => node.scrollWidth <= node.clientWidth")
+        title_style = page.locator(".doc-title").first.evaluate(
+            "node => ({ overflow: getComputedStyle(node).overflow, textOverflow: getComputedStyle(node).textOverflow, whiteSpace: getComputedStyle(node).whiteSpace })"
+        )
+        assert title_style == {"overflow": "hidden", "textOverflow": "ellipsis", "whiteSpace": "nowrap"}
         page.get_by_role("button", name="新建页面").click()
         with page.expect_file_chooser() as chooser_info:
             page.get_by_role("tab", name="导入 Markdown").click()
@@ -54,6 +59,15 @@ def main() -> None:
         editor = page.locator('.editor-holder [contenteditable="true"]:visible')
         editor.wait_for()
         expect(editor).not_to_have_text("")
+        sidebar_top = page.locator("aside.sidebar").bounding_box()["y"]
+        max_scroll = page.locator("main.workspace").evaluate("node => node.scrollHeight - node.clientHeight")
+        assert max_scroll > 0
+        page.locator("main.workspace").evaluate("node => node.scrollTop = Math.min(300, node.scrollHeight)")
+        page.wait_for_timeout(100)
+        assert page.locator("main.workspace").evaluate("node => node.scrollTop") > 0
+        assert page.locator("aside.sidebar").bounding_box()["y"] == sidebar_top
+        assert page.evaluate("window.scrollY") == 0
+        page.locator("main.workspace").evaluate("node => node.scrollTop = 0")
         page.get_by_title("收起目录").click()
         page.wait_for_timeout(250)
         collapsed_sidebar = page.locator("aside.sidebar").bounding_box()

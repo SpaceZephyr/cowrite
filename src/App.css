@@ -1,4 +1,4 @@
-.shell { min-height: 100vh; display: flex; align-items: stretch; overflow-x: hidden; }
+.shell { height: 100vh; display: flex; align-items: stretch; overflow: hidden; }
 
 .sidebar { position: sticky; top: 0; z-index: 20; width: 0; height: 100vh; flex: 0 0 0; box-sizing: border-box; overflow: hidden; background: var(--sidebar); display: flex; flex-direction: column; padding: 8px 0; transition: width .18s ease, flex-basis .18s ease, padding .18s ease; }
 .sidebar-open .sidebar { width: 240px; flex-basis: 240px; padding: 8px; }
@@ -10,17 +10,17 @@
 .sidebar-head button:hover { background: var(--hover); }
 .new-page { margin: 8px 0; height: 32px; border: 0; background: transparent; border-radius: 5px; color: var(--muted); font-size: 13px; text-align: left; padding: 0 8px; }
 .new-page:hover { background: var(--hover); }
-.sidebar nav { flex: 1; overflow-y: auto; display: grid; gap: 1px; align-content: start; }
-.sidebar nav button { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px; border: 0; background: transparent; border-radius: 5px; text-align: left; padding: 4px 8px; color: #55534e; font-size: 13px; }
+.sidebar nav { flex: 1; overflow-x: hidden; overflow-y: auto; display: grid; gap: 1px; align-content: start; }
+.sidebar nav button { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; min-height: 30px; overflow: hidden; border: 0; background: transparent; border-radius: 5px; text-align: left; padding: 4px 8px; color: #55534e; font-size: 13px; }
 .sidebar nav button:hover, .sidebar nav button.active { background: var(--hover); }
 .sidebar nav button.active { color: var(--text); font-weight: 500; }
 .doc-icon { color: var(--faint); font-size: 12px; }
-.doc-title { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.doc-title { flex: 1; min-width: 0; display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .pending-dot { width: 7px; height: 7px; border-radius: 50%; background: #e9b949; flex: 0 0 auto; }
 .sidebar footer { padding: 10px 8px; color: var(--faint); font-size: 11px; display: flex; align-items: center; gap: 7px; }
 .mcp-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ca658; }
 
-.workspace { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.workspace { flex: 1; min-width: 0; height: 100vh; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; }
 
 .topbar { height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 14px; position: sticky; top: 0; z-index: 10; background: #ffffffee; backdrop-filter: blur(8px); }
 .icon-button { border: 0; background: transparent; border-radius: 5px; padding: 5px 9px; color: var(--muted); font-size: 15px; }
