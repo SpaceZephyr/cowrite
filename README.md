@@ -101,7 +101,7 @@ npm run dev
 1. 新建页面，填写标题和创作要求；Cowrite 会复制创作口令，Agent 完成后写回页面。
 2. 在编辑器中选中文字，使用浮动工具栏的「配图」「HTML」「优化」或「指令」。
 3. 点击每个 Page 顶部的「Slide」，选择 PPT 或 HTML；Agent 使用整篇内容生成 Slides，并把交付链接插回文章顶部。
-4. 点击「公众号排版」；Agent 自动匹配 Claude、OpenAI 或 Google 风格，生成可复制富 HTML 的预览页并回写地址。
+4. 点击「排版」；Agent 自动匹配 Claude、OpenAI 或 Google 风格，生成可复制富 HTML 的公众号预览页并回写地址。
 5. Agent 读取页面最新 revision，调用指定 Skill 产出结果，再通过 MCP 精确写回。
 6. 编辑器轮询更新，人和 Agent 可以继续编辑同一页面；revision 乐观锁会阻止相互覆盖。
 
@@ -113,7 +113,7 @@ npm run dev
 | HTML | `skills/text-logic-diagram` | 16:9 HTML/PPT 风格单页、内联 CSS + SVG、适合 iframe |
 | 优化 | `skills/ai-writing-assistant` | Method 5 局部改写，只替换选中文字 |
 | Slide | `skills/space-multi-design-ppt` | 智能品牌匹配；原生可编辑 PPTX 或 16:9 HTML deck |
-| 公众号排版 | `skills/space-wechat-layout` | 自动匹配 Claude / OpenAI / Google；微信公众号可复制富 HTML 预览页 |
+| 排版 | `skills/space-wechat-layout` | 自动匹配 Claude / OpenAI / Google；微信公众号可复制富 HTML 预览页 |
 | 页面读写 | `skills/cowrite` | MCP 操作、revision 合并、防覆盖规则 |
 
 按钮复制的口令会显式声明 Skill 名称和已确认参数。配图链路若缺少凭据、余额或本地服务，会直接返回失败，不会改用其他模型并插入来源不明的图片。

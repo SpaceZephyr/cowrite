@@ -25,7 +25,7 @@ def main() -> None:
 
         buttons = page.get_by_role("button").all_inner_texts()
         print(f"buttons={buttons}")
-        page.get_by_role("button", name="公众号排版").click()
+        page.get_by_role("button", name="排版", exact=True).click()
         wechat_command = page.evaluate("navigator.clipboard.readText()")
         assert "space-wechat-layout" in wechat_command
         assert "index.html" in wechat_command

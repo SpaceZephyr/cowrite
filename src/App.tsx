@@ -351,8 +351,8 @@ function App() {
           />
           <div className="topbar-right">
             <span className={`save-state ${saveState}`}>{saveState === 'saved' ? '已保存' : '保存中…'}</span>
-            <button className="wechat-trigger" onClick={copyWechatLayoutCommand} title="把当前 Page 排版为微信公众号 HTML">公众号排版</button>
-            <button className="slide-trigger" onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">▰ Slide</button>
+            <button onClick={copyWechatLayoutCommand} title="把当前 Page 排版为微信公众号 HTML">排版</button>
+            <button onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">Slide</button>
             <button onClick={copyCommand} title="复制创作口令给 Agent">cowrite</button>
             <button className="danger" onClick={removePage}>删除</button>
           </div>

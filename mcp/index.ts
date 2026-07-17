@@ -23,7 +23,7 @@ function toolResult<T extends object>(value: T) {
 }
 
 export function createCowriteMcpServer() {
-  const server = new McpServer({ name: 'cowrite-mcp-server', version: '0.5.2' })
+  const server = new McpServer({ name: 'cowrite-mcp-server', version: '0.5.3' })
 
   server.registerTool(
     'cowrite_get_status',

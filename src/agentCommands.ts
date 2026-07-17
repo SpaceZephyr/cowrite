@@ -14,7 +14,7 @@ export function wechatLayoutCommand({ pageId, title }: PageSlideCommandInput): s
     '',
     '必须调用 Cowrite 插件随仓库提供的 space-wechat-layout Skill，不得改用其他公众号排版 Skill 或临时拼装的 HTML 模板。',
     '',
-    '用户点击 Cowrite 的「公众号排版」按钮时已经确认以下参数，无需再次询问：',
+    '用户点击 Cowrite 的「排版」按钮时已经确认以下参数，无需再次询问：',
     '- 样式：你来定；根据正文自动选择 Claude、OpenAI 或 Google 风格',
     '- 输出：单文件 index.html，包含本地预览和「复制 HTML」按钮',
     '- 微信兼容：被复制的文章正文全部使用内联样式，不依赖外部 CSS、脚本、字体或关键 SVG',
