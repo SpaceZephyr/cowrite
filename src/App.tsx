@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 import type { Page } from '../shared/types'
-import { conversationCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from './agentCommands'
+import { conversationCommand, explainerCommand, illustrateCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from './agentCommands'
 import './App.css'
 
 type PageMeta = Omit<Page, 'content'>
@@ -123,6 +123,31 @@ function LayoutModal({ onClose, onChoose }: {
         </button>
       </div>
       <p className="slide-footnote">选择后复制任务，粘贴给 Agent 执行。</p>
+    </div>
+  </div>
+}
+
+function CowriteModal({ page, onClose, onSubmit }: {
+  page: Page
+  onClose: () => void
+  onSubmit: (requirement: string) => void
+}) {
+  const [requirement, setRequirement] = useState('')
+  return <div className="modal-mask" onClick={onClose}>
+    <div className="modal cowrite-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="slide-modal-head">
+        <h2>Cowrite</h2>
+        <button className="modal-close" title="关闭" onClick={onClose}>×</button>
+      </div>
+      <div className="cowrite-mode">
+        <b>按页面内容进行创作</b>
+        <small>{page.title}</small>
+      </div>
+      <textarea autoFocus value={requirement} placeholder="请输入创作要求" onChange={(event) => setRequirement(event.target.value)} />
+      <div className="modal-actions">
+        <button onClick={onClose}>取消</button>
+        <button className="primary" disabled={!requirement.trim()} onClick={() => onSubmit(requirement.trim())}>复制任务</button>
+      </div>
     </div>
   </div>
 }
@@ -298,6 +323,7 @@ function App() {
   const [activePage, setActivePage] = useState<Page | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [cowriteOpen, setCowriteOpen] = useState(false)
   const [layoutOpen, setLayoutOpen] = useState(false)
   const [slideOpen, setSlideOpen] = useState(false)
   const [saveState, setSaveState] = useState<'saved' | 'dirty'>('saved')
@@ -350,11 +376,18 @@ function App() {
     notify('页面已删除')
   }
 
-  const copyCommand = async () => {
+  const copyPendingCommand = async () => {
     if (!activePage) return
     const command = await (await fetch(`/api/pages/${activePage.id}/command`)).text()
     await navigator.clipboard.writeText(command)
     notify('口令已复制，粘贴给 Codex / Claude Code')
+  }
+
+  const copyPageCreationCommand = async (requirement: string) => {
+    if (!activePage) return
+    await navigator.clipboard.writeText(pageCreationCommand({ pageId: activePage.id, title: activePage.title }, requirement))
+    setCowriteOpen(false)
+    notify('Cowrite 创作任务已复制，粘贴给 Agent 后会按当前页面内容继续创作')
   }
 
   const copySlideCommand = async (format: 'pptx' | 'html') => {
@@ -419,14 +452,14 @@ function App() {
             <span className={`save-state ${saveState}`}>{saveState === 'saved' ? '已保存' : '保存中…'}</span>
             <button onClick={() => setLayoutOpen(true)} title="把当前 Page 排版为公众号或小红书内容">排版</button>
             <button onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">Slide</button>
-            <button onClick={copyCommand} title="复制创作口令给 Agent">cowrite</button>
+            <button onClick={() => setCowriteOpen(true)} title="根据当前 Page 内容继续创作">cowrite</button>
             <button className="danger" onClick={removePage}>删除</button>
           </div>
         </>}
       </div>
       {activePage?.prompt && activePage.revision === 1 && <div className="prompt-banner">
         <div><b>等待 Agent 创作</b><p>{activePage.prompt}</p></div>
-        <button onClick={copyCommand}>复制口令</button>
+        <button onClick={copyPendingCommand}>复制口令</button>
       </div>}
       {activePage
         ? <Editor key={activePage.id} page={activePage} onDirty={onDirty} onSaved={onSaved} notify={notify} />
@@ -445,6 +478,11 @@ function App() {
     {layoutOpen && activePage && <LayoutModal
       onClose={() => setLayoutOpen(false)}
       onChoose={copyLayoutCommand}
+    />}
+    {cowriteOpen && activePage && <CowriteModal
+      page={activePage}
+      onClose={() => setCowriteOpen(false)}
+      onSubmit={copyPageCreationCommand}
     />}
     {toast && <div className="toast">✓ {toast}</div>}
   </div>

@@ -2,12 +2,21 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { conversationCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from '../src/agentCommands.js'
+import { conversationCommand, explainerCommand, illustrateCommand, pageCreationCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand, xhsLayoutCommand } from '../src/agentCommands.js'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const input = { pageId: 'page_demo', selection: '这是一段需要处理的文字。' }
 
 describe('agent command skill routing', () => {
+  it('creates a requirement-driven task from the current page', () => {
+    const command = pageCreationCommand({ pageId: 'page_demo', title: '原文章' }, '续写一个案例')
+    expect(command).toContain('页面标题：原文章')
+    expect(command).toContain('创作要求：续写一个案例')
+    expect(command).toContain('cowrite_get_page')
+    expect(command).toContain('cowrite_update_page')
+    expect(command).toContain('不要无故删除原文')
+  })
+
   it('routes illustration commands to bundled Image2 without silent fallback', () => {
     const command = illustrateCommand(input)
     expect(command).toContain('image-studio Skill')

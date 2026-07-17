@@ -8,6 +8,22 @@ type PageSlideCommandInput = {
   title: string
 }
 
+export function pageCreationCommand({ pageId, title }: PageSlideCommandInput, requirement: string): string {
+  return [
+    `请根据 Cowrite 页面 ${pageId} 的当前完整内容继续创作。`,
+    '',
+    `页面标题：${title}`,
+    `创作要求：${requirement}`,
+    '',
+    '执行规则：',
+    `1. 调用 cowrite_get_page 读取页面 ${pageId} 的最新 title、完整 Markdown content 和 revision；把全文作为创作上下文和写回目标；`,
+    '2. 选择 Cowrite 插件内与创作要求最匹配的 Skill；保持页面已有事实、作者口吻和 Markdown 结构；',
+    '3. 若要求是续写、补充或生成衍生内容，把新内容自然追加到当前正文；若明确要求改写或替换，才修改对应内容；不要无故删除原文；',
+    '4. 调用 cowrite_update_page 写回完整正文，必须带 expected_revision；',
+    '5. revision 冲突时重新读取，合并用户最新修改后重试一次。',
+  ].join('\n')
+}
+
 export function wechatLayoutCommand({ pageId, title }: PageSlideCommandInput): string {
   return [
     `请把 Cowrite 页面 ${pageId} 的当前完整内容排版为微信公众号可用的 HTML 预览页。`,

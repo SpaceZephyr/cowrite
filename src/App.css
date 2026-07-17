@@ -78,6 +78,12 @@
 .markdown-picker b { font-size: 13px; font-weight: 600; }
 .markdown-picker small { color: var(--faint); font-size: 11px; }
 
+.cowrite-modal { width: min(500px, calc(100% - 40px)); }
+.cowrite-mode { display: grid; gap: 4px; padding: 12px 14px; border-radius: 7px; background: #f7f7f5; }
+.cowrite-mode b { font-size: 13px; }
+.cowrite-mode small { color: var(--faint); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cowrite-modal textarea { min-height: 150px; }
+
 .slide-modal { width: min(440px, calc(100% - 40px)); gap: 14px; }
 .slide-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .slide-modal-head h2 { margin: 0; }

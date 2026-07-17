@@ -11,6 +11,7 @@ SCREENSHOT = Path("/tmp/cowrite-slide-modal.png")
 IMPORT_SCREENSHOT = Path("/tmp/cowrite-import-modal.png")
 CONVERSATION_SCREENSHOT = Path("/tmp/cowrite-conversation-toolbar.png")
 LAYOUT_SCREENSHOT = Path("/tmp/cowrite-layout-modal.png")
+COWRITE_SCREENSHOT = Path("/tmp/cowrite-creation-modal.png")
 
 
 def main() -> None:
@@ -104,6 +105,18 @@ def main() -> None:
         assert "GPT-Image-2 / LabNana" in xhs_command
         assert "aspect-ratio=3:4" in xhs_command
 
+        page.get_by_role("button", name="cowrite", exact=True).click()
+        page.get_by_role("heading", name="Cowrite", exact=True).wait_for()
+        page.get_by_text("按页面内容进行创作", exact=True).wait_for()
+        requirement_input = page.get_by_placeholder("请输入创作要求")
+        requirement_input.fill("续写一个真实案例")
+        page.screenshot(path=str(COWRITE_SCREENSHOT), full_page=True)
+        page.get_by_role("button", name="复制任务").click()
+        creation_command = page.evaluate("navigator.clipboard.readText()")
+        assert "创作要求：续写一个真实案例" in creation_command
+        assert "cowrite_get_page" in creation_command
+        assert "cowrite_update_page" in creation_command
+
         page.get_by_role("button", name="Slide").click()
         page.get_by_role("heading", name="生成 Slides").wait_for()
         page.screenshot(path=str(SCREENSHOT), full_page=True)
@@ -124,11 +137,13 @@ def main() -> None:
         print(f"html_command_length={len(html_command)}")
         print(f"wechat_command_length={len(wechat_command)}")
         print(f"xhs_command_length={len(xhs_command)}")
+        print(f"creation_command_length={len(creation_command)}")
         print(f"conversation_command_length={len(conversation_command)}")
         print(f"screenshot={SCREENSHOT}")
         print(f"import_screenshot={IMPORT_SCREENSHOT}")
         print(f"conversation_screenshot={CONVERSATION_SCREENSHOT}")
         print(f"layout_screenshot={LAYOUT_SCREENSHOT}")
+        print(f"cowrite_screenshot={COWRITE_SCREENSHOT}")
         browser.close()
 
 
