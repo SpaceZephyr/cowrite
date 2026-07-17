@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "cowrite": {
+      "command": "npx",
+      "args": ["-y", "tsx", "mcp/index.ts"],
+      "cwd": "."
+    }
+  }
+}
