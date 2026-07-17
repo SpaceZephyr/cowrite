@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 import type { Page } from '../shared/types'
-import { customCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand } from './agentCommands'
+import { conversationCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand } from './agentCommands'
 import './App.css'
 
 type PageMeta = Omit<Page, 'content'>
@@ -138,8 +138,7 @@ function Editor({ page, onDirty, onSaved, notify }: {
   const revisionRef = useRef(page.revision)
   const dirtyRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
-  const [selectionBar, setSelectionBar] = useState<{ x: number; y: number; text: string; custom: boolean } | null>(null)
-  const [instruction, setInstruction] = useState('')
+  const [selectionBar, setSelectionBar] = useState<{ x: number; y: number; text: string } | null>(null)
   const pageId = page.id
 
   const save = useCallback(async () => {
@@ -213,7 +212,7 @@ function Editor({ page, onDirty, onSaved, notify }: {
       const text = selection.toString().trim()
       if (!text || !holder.contains(selection.anchorNode)) { setSelectionBar(null); return }
       const rect = selection.getRangeAt(0).getBoundingClientRect()
-      setSelectionBar((current) => current?.custom ? current : { x: rect.left + rect.width / 2, y: rect.top, text, custom: false })
+      setSelectionBar({ x: rect.left + rect.width / 2, y: rect.top, text })
     }
     const onMouseUp = () => setTimeout(update, 0)
     const onKeyUp = (event: KeyboardEvent) => { if (event.key.startsWith('Arrow') || event.shiftKey) setTimeout(update, 0) }
@@ -248,27 +247,13 @@ function Editor({ page, onDirty, onSaved, notify }: {
   const copyAi = async (command: string, hint: string) => {
     await navigator.clipboard.writeText(command)
     setSelectionBar(null)
-    setInstruction('')
     notify(hint)
   }
 
   return <>
     <div className="editor-holder" ref={holderRef} />
     {selectionBar && <div className="selection-bar" style={{ left: selectionBar.x, top: selectionBar.y }}>
-      {selectionBar.custom
-        ? <div className="custom-input">
-            <input
-              autoFocus
-              value={instruction}
-              placeholder="对选中文字做什么？回车复制口令"
-              onChange={(event) => setInstruction(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && instruction.trim()) copyAi(customCommand({ pageId, selection: selectionBar.text }, instruction.trim()), '指令口令已复制，粘贴给 Codex')
-                if (event.key === 'Escape') { setSelectionBar(null); setInstruction('') }
-              }}
-            />
-          </div>
-        : <>
+      <>
             <button title="加粗" onMouseDown={(event) => { event.preventDefault(); wrapSelection('**', '**') }}><b>B</b></button>
             <button title="斜体" onMouseDown={(event) => { event.preventDefault(); wrapSelection('*', '*') }}><i>I</i></button>
             <button title="删除线" onMouseDown={(event) => { event.preventDefault(); wrapSelection('~~', '~~') }}><s>S</s></button>
@@ -278,8 +263,8 @@ function Editor({ page, onDirty, onSaved, notify }: {
             <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(illustrateCommand({ pageId, selection: selectionBar.text }), 'Image2 配图口令已复制，结果会插入选中段落下方') }}>配图</button>
             <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(explainerCommand({ pageId, selection: selectionBar.text }), 'HTML/PPT 解释图口令已复制，结果会插入选中段落下方') }}>HTML</button>
             <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(polishCommand({ pageId, selection: selectionBar.text }), 'Skill 优化口令已复制，Agent 只会改写这段文字') }}>优化</button>
-            <button className="ai" onMouseDown={(event) => { event.preventDefault(); setSelectionBar((current) => current ? { ...current, custom: true } : null) }}>指令</button>
-          </>}
+            <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(conversationCommand({ pageId, selection: selectionBar.text }), '已引用选中文字，粘贴到 Codex 对话框后补充修改要求') }}>对话</button>
+          </>
     </div>}
   </>
 }

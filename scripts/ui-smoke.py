@@ -9,6 +9,7 @@ from playwright.sync_api import expect, sync_playwright
 APP_URL = "http://127.0.0.1:4322/"
 SCREENSHOT = Path("/tmp/cowrite-slide-modal.png")
 IMPORT_SCREENSHOT = Path("/tmp/cowrite-import-modal.png")
+CONVERSATION_SCREENSHOT = Path("/tmp/cowrite-conversation-toolbar.png")
 
 
 def main() -> None:
@@ -49,12 +50,28 @@ def main() -> None:
         assert page.get_by_role("button", name="导入页面").is_enabled()
         page.screenshot(path=str(IMPORT_SCREENSHOT), full_page=True)
         page.get_by_role("button", name="取消").click()
+        page.get_by_text("欢迎使用 Cowrite", exact=True).click()
+        editor = page.locator('.editor-holder [contenteditable="true"]:visible')
+        editor.wait_for()
+        expect(editor).not_to_have_text("")
         page.get_by_title("收起目录").click()
         page.wait_for_timeout(250)
         collapsed_sidebar = page.locator("aside.sidebar").bounding_box()
         collapsed_workspace = page.locator("main.workspace").bounding_box()
         assert collapsed_sidebar and collapsed_sidebar["width"] <= 1
         assert collapsed_workspace and collapsed_workspace["x"] <= 1
+
+        selected_text = editor.inner_text().strip()
+        assert selected_text
+        editor.select_text()
+        page.locator(".editor-holder").dispatch_event("mouseup")
+        conversation_button = page.get_by_role("button", name="对话", exact=True)
+        conversation_button.wait_for(state="attached")
+        page.screenshot(path=str(CONVERSATION_SCREENSHOT), full_page=True)
+        conversation_button.dispatch_event("mousedown")
+        conversation_command = page.evaluate("navigator.clipboard.readText()")
+        assert "我想这样修改" in conversation_command
+        assert "引用原文：\n> " in conversation_command
 
         page.get_by_role("button", name="排版", exact=True).click()
         wechat_command = page.evaluate("navigator.clipboard.readText()")
@@ -81,8 +98,10 @@ def main() -> None:
         print(f"ppt_command_length={len(ppt_command)}")
         print(f"html_command_length={len(html_command)}")
         print(f"wechat_command_length={len(wechat_command)}")
+        print(f"conversation_command_length={len(conversation_command)}")
         print(f"screenshot={SCREENSHOT}")
         print(f"import_screenshot={IMPORT_SCREENSHOT}")
+        print(f"conversation_screenshot={CONVERSATION_SCREENSHOT}")
         browser.close()
 
 

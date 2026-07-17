@@ -54,9 +54,6 @@
 .selection-bar button:hover { background: #ffffff1f; color: #fff; }
 .selection-bar button.ai { font-size: 12px; }
 .bar-divider { width: 1px; height: 16px; background: #ffffff2e; margin: 0 3px; }
-.custom-input input { width: 300px; border: 0; background: transparent; color: #fff; font-size: 12.5px; padding: 6px 10px; }
-.custom-input input::placeholder { color: #ffffff80; }
-
 .empty-state { flex: 1; display: grid; place-items: center; align-content: center; gap: 14px; color: var(--muted); }
 .empty-state .primary, .modal .primary { border: 0; background: var(--blue); color: #fff; border-radius: 5px; padding: 8px 16px; font-size: 13px; }
 

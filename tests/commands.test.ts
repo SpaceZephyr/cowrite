@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand } from '../src/agentCommands.js'
+import { conversationCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand } from '../src/agentCommands.js'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const input = { pageId: 'page_demo', selection: '这是一段需要处理的文字。' }
@@ -30,6 +30,14 @@ describe('agent command skill routing', () => {
     expect(command).toContain('ai-writing-assistant Skill')
     expect(command).toContain('Method 5: Revision Optimization')
     expect(command).toContain('其余内容一字不动')
+  })
+
+  it('quotes selected text into an editable conversation draft', () => {
+    const command = conversationCommand({ pageId: 'page_demo', selection: '第一行\n第二行' })
+    expect(command).toContain('我想这样修改：')
+    expect(command).toContain('【请在发送前把这里替换成你的修改要求】')
+    expect(command).toContain('> 第一行\n> 第二行')
+    expect(command).toContain('只替换这段引用原文')
   })
 
   it('routes full-page PPT output to the bundled editable PPTX workflow', () => {

@@ -89,20 +89,22 @@ export function polishCommand({ pageId, selection }: PassageCommandInput): strin
   ].join('\n')
 }
 
-export function customCommand({ pageId, selection }: PassageCommandInput, instruction: string): string {
+export function conversationCommand({ pageId, selection }: PassageCommandInput): string {
+  const quote = selection.split('\n').map((line) => `> ${line}`).join('\n')
   return [
-    `请按自定义指令处理 Cowrite 页面 ${pageId} 中的一段文字。`,
+    `请修改 Cowrite 页面 ${pageId} 中我引用的这段文字。`,
     '',
-    '选中文字（页面正文的原文精确片段）：',
-    selection,
+    '我想这样修改：',
+    '【请在发送前把这里替换成你的修改要求】',
     '',
-    `指令：${instruction}`,
+    '引用原文：',
+    quote,
     '',
     '步骤：',
-    `1. 调用 cowrite_get_page 读取页面 ${pageId}，拿到最新 revision；`,
-    '2. 选择 Cowrite 插件内最匹配的 Skill 执行指令：文章改写优先使用 ai-writing-assistant，图片使用 image-studio，HTML 逻辑图使用 text-logic-diagram；',
-    '3. 若修改文字本身，用 cowrite_update_page 写回完整正文且只改这一段；若产出新内容，用 cowrite_insert_after 插到这段文字下方（图片和 HTML 先用 cowrite_upload_asset 上传）；',
-    '4. 页面其余内容一字不动，必须带 expected_revision；冲突时重新读取合并。',
+    `1. 调用 cowrite_get_page 读取页面 ${pageId}，拿到最新 revision；引用行前的 \`> \` 只是对话格式，去掉后确认原文仍存在；`,
+    '2. 按我补充的要求修改引用内容；若修改要求仍是占位文字，先向我确认，不要写回；',
+    '3. 调用 cowrite_update_page 写回完整正文，只替换这段引用原文，其余内容一字不动；',
+    '4. 必须带 expected_revision；revision 冲突时重新读取、合并后再写。',
   ].join('\n')
 }
 
