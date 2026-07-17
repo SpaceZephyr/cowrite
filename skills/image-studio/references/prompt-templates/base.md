@@ -77,6 +77,6 @@ Path('/tmp/image-studio-prompt.txt').write_text(prompt)
 
 ## 注意
 
-- 提示词总长不超 4000 字符（GPT-image-2 限制）
+- 提示词保持精炼，通常不超过 4000 字符，避免重复和互相冲突的要求
 - 中文内容字段必须完整保留中文，不翻译
 - Style 文件只读取一次，写入提示词后不再回读

@@ -13,7 +13,7 @@
 
 <p align="center">MIT · Codex / Claude Code compatible · Contact: Space</p>
 
-Cowrite 是一个本地运行的对话式写作画布。浏览器负责承载和编辑文章，Codex / Claude Code 通过 MCP 读写同一份数据；配图、HTML 解释图和文章优化由仓库内置 Skill 完成。它同时提供 Codex 与 Claude Code marketplace，安装后会自动准备依赖、构建前端并启动本地服务。
+Cowrite 是一个本地运行的对话式写作画布。浏览器负责承载和编辑文章，Codex / Claude Code 通过 MCP 读写同一份数据；配图统一调用 Codex 内置 `image_gen`，HTML 解释图和文章优化由仓库内置 Skill 完成。它同时提供 Codex 与 Claude Code marketplace，安装后会自动准备依赖、构建前端并启动本地服务。
 
 ## 安装
 
@@ -102,8 +102,8 @@ npm run dev
 2. 点击顶部「Cowrite」，在“按页面内容为要求创作”和“输入自定义创作要求”之间二选一；任务会连同当前页面全文复制到 Agent 对话框。
 3. 在编辑器中选中文字，使用浮动工具栏的「配图」「HTML」「优化」或「对话」；「对话」会复制带原文引用的草稿，粘贴到 Agent 输入框后补充修改要求。
 4. 点击每个 Page 顶部的「Slide」，选择 PPT 或 HTML；Agent 使用整篇内容生成 Slides，并把交付链接插回文章顶部。
-5. 点击「排版」，选择公众号或小红书：公众号生成可复制富 HTML；小红书按确认后的策略用 GPT-Image-2 生成 3:4 图片组。
-6. 点击顶部「配图」，确认后由 Agent 分析整篇文章，使用 GPT-Image-2 生成 2-6 张统一风格的 16:9 配图并插入对应段落。
+5. 点击「排版」，选择公众号或小红书：公众号生成可复制富 HTML；小红书按确认后的策略用 Codex 内置 `image_gen` 生成 3:4 图片组。
+6. 点击顶部「配图」，确认后由 Agent 分析整篇文章，使用 Codex 内置 `image_gen` 生成 2-6 张统一风格的 16:9 配图并插入对应段落。
 7. 点击「发送」，可选择飞书、公众号或知乎；飞书确认后通过本机 `lark-cli` 创建云文档，公众号与知乎暂标记为“待完善”。
 8. Agent 读取页面最新 revision，调用指定 Skill 产出结果，再通过 MCP 精确写回。
 9. 编辑器轮询更新，人和 Agent 可以继续编辑同一页面；revision 乐观锁会阻止相互覆盖。
@@ -113,32 +113,27 @@ npm run dev
 
 | Cowrite 操作 | 仓库内 Skill | 固定产物与约束 |
 |---|---|---|
-| 配图 | `skills/image-studio` | GPT-Image-2 / LabNana、16:9 PNG、不得静默切换模型 |
+| 配图 | `skills/image-studio` | Codex 内置 `image_gen`、16:9 图片、禁止外部模型回退 |
 | 整篇配图 | `skills/article-batch-illustration` + `skills/image-studio` | 自动规划 2-6 个锚点、统一风格、逐图安全插入 |
 | HTML | `skills/text-logic-diagram` | 16:9 HTML/PPT 风格单页、内联 CSS + SVG、适合 iframe |
 | 优化 | `skills/ai-writing-assistant` | Method 5 局部改写，只替换选中文字 |
 | Slide | `skills/space-multi-design-ppt` | 智能品牌匹配；原生可编辑 PPTX 或 16:9 HTML deck |
 | 排版 | `skills/space-wechat-layout` | 自动匹配 Claude / OpenAI / Google；微信公众号可复制富 HTML 预览页 |
-| 小红书排版 | `skills/baoyu-xhs-images` + `skills/image-studio` | 两次方案确认；GPT-Image-2 生成 3:4 PNG 图片组 |
+| 小红书排版 | `skills/baoyu-xhs-images` + `skills/image-studio` | 两次方案确认；Codex 内置 `image_gen` 逐张生成 3:4 图片组 |
 | 页面读写 | `skills/cowrite` | MCP 操作、revision 合并、防覆盖规则 |
 
-按钮复制的口令会显式声明 Skill 名称和已确认参数。配图链路若缺少凭据、余额或本地服务，会直接返回失败，不会改用其他模型并插入来源不明的图片。
+按钮复制的口令会显式声明 Skill 名称和已确认参数。所有位图生成统一走 Codex 内置 `image_gen`，不需要配置图片 API key，也不会改用外部模型或插入来源不明的图片。
 
-## 配置 Image2
+## 内置图片生成
 
-真实密钥不随仓库分发。可使用环境变量：
+Cowrite 不再包含 LabNana、Gemini 或其他外部图片 API 脚本。配图、整篇配图、小红书图片和 Slide 图片模式都使用 Codex 内置 `image_gen`：
 
-```bash
-export LABNANA_API_KEY="your-key"
-```
+- 不需要 `LABNANA_API_KEY` 或 `OPENAI_API_KEY`
+- 每张不同图片单独调用一次内置工具
+- 生成后先检查，再复制到项目目录、上传并插入 Cowrite
+- 内置工具不可用或失败时停止，不使用 CLI 或外部模型回退
 
-也可以复制本地配置示例：
-
-```bash
-cp skills/image-studio/.labnana.env.example skills/image-studio/.labnana.env
-```
-
-`.labnana.env` 已加入 `.gitignore`。通过 marketplace 安装时，推荐在启动 Codex / Claude Code 前设置环境变量；从源码运行时也可以使用本地 `.labnana.env`。Image2 的中间产物不会进入 Git。
+Codex 提供内置生图时图片按钮可直接执行。Claude Code 仍可使用页面编辑、排版、HTML、PPTX 和 MCP 能力；如果当前运行时没有 Codex 内置 `image_gen`，图片任务会明确停止，不会自动切换供应商。
 
 ## Agent 接入
 
@@ -150,7 +145,7 @@ cp skills/image-studio/.labnana.env.example skills/image-studio/.labnana.env
 .mcp.json                                 Codex / Claude Code 双端 MCP 启动配置
 scripts/start-plugin.mjs                  自动安装、构建、启动与持久化
 skills/cowrite/SKILL.md                   页面读写与并发规则
-skills/image-studio/                      Image2 生图脚本、风格和提示词模板
+skills/image-studio/                      Codex 内置 image_gen 工作流、风格和提示词模板
 skills/article-batch-illustration/         整篇文章配图规划、统一视觉与安全插入规则
 skills/text-logic-diagram/                HTML/PPT 逻辑图规范与模板
 skills/ai-writing-assistant/              文章创作与局部优化方法

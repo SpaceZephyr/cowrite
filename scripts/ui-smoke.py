@@ -115,8 +115,8 @@ def main() -> None:
         page.get_by_role("button", name="小红书排版").click()
         xhs_command = page.evaluate("navigator.clipboard.readText()")
         assert "baoyu-xhs-images" in xhs_command
-        assert "GPT-Image-2 / LabNana" in xhs_command
-        assert "aspect-ratio=3:4" in xhs_command
+        assert "Codex 内置 image_gen" in xhs_command
+        assert "3:4 画布" in xhs_command
 
         active_content = page.evaluate("""async () => {
             const pages = await fetch('/api/pages').then((response) => response.json())
@@ -132,7 +132,7 @@ def main() -> None:
         page.get_by_role("button", name="确认并复制配图任务").click()
         article_illustration_command = page.evaluate("navigator.clipboard.readText()")
         assert "article-batch-illustration Skill" in article_illustration_command
-        assert "GPT-Image-2 / LabNana" in article_illustration_command
+        assert "Codex 内置 image_gen" in article_illustration_command
         assert "cowrite_insert_after" in article_illustration_command
         assert active_content in article_illustration_command
 

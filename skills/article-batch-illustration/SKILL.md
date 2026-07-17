@@ -5,19 +5,19 @@ description: Analyze a complete Markdown article, plan a restrained set of illus
 
 # Article Batch Illustration for Cowrite
 
-Plan and generate a coherent illustration set for one complete Cowrite Markdown page. This Skill owns article analysis and placement. The bundled `image-studio` Skill owns prompt assembly and GPT-Image-2 / LabNana generation.
+Plan and generate a coherent illustration set for one complete Cowrite Markdown page. This Skill owns article analysis and placement. The bundled `image-studio` Skill owns prompt assembly and generation through Codex's built-in `image_gen` tool.
 
 ## Fixed Cowrite profile
 
 - Output: PNG, 16:9, 2K
 - Image type: image-studio type D / article logic illustration
-- Model path: bundled `image-studio/scripts/generate_image.py`, provider `labnana`, model `gpt-image-2`
+- Generation path: Codex built-in `image_gen` tool only; one tool call per image
 - Language: Simplified Chinese; technical abbreviations may remain English
 - Count: normally 2-6; use fewer for short articles
 - Placement: after an exact, unique Markdown heading or paragraph anchor
 - Page safety: never rewrite the source article; insert only successful final images
 
-Never use the legacy Gemini generator, an embedded API key, a web image search, or an unapproved fallback model. If Image2 credentials, quota, or service are unavailable, report the failure and leave the page unchanged.
+Never use LabNana, Gemini, an API/CLI image generator, an embedded API key, web image search, or another model. If built-in `image_gen` is unavailable or fails, report the failure and leave the page unchanged.
 
 ## Phase 1: analyze and select positions
 
@@ -50,9 +50,9 @@ For each selected position in article order:
 
 1. Assemble a complete prompt using bundled image-studio's article-logic type, chosen style, base template, and the section's core point.
 2. Repeat the full shared visual identity in every prompt; do not assume session memory.
-3. Call image-studio's generator with `--provider labnana --model gpt-image-2 --aspect-ratio 16:9 --resolution 2K`.
-4. Verify that the output file exists, is readable, and is a non-empty PNG. Record failures and continue.
-5. Upload only verified images with `cowrite_upload_asset`.
+3. Call Codex's built-in `image_gen` once for each distinct image. Express 16:9 composition and 2K-quality intent in every prompt; do not invent CLI flags or call a script.
+4. Inspect every returned image, then copy the accepted saved result into a writable project directory. Verify that the copied file exists, is readable, and is a non-empty raster image. Record failures and continue.
+5. Upload only verified accepted images with `cowrite_upload_asset`.
 
 ## Phase 4: revision-safe insertion
 

@@ -1,33 +1,36 @@
-# AI 图像模式（可选）
+# AI 图像模式
 
-仅在满足以下两个条件时启用：用户明确想要插画感/手绘感的**图片式**幻灯片，且环境变量 `LABNANA_API_KEY` 可用（或 `.labnana.env` 存在）。否则一律走默认 HTML 模式。
+仅在用户明确要求插画感或手绘感的图片式幻灯片，并且当前运行时提供 Codex 内置 `image_gen` 工具时启用。否则使用默认 HTML 或原生 PPTX 模式。
 
-## 与 HTML 模式的差异
+## 与默认模式的差异
 
-| | HTML 模式（默认） | 图像模式 |
+| | HTML/PPTX 默认模式 | 图片模式 |
 |---|---|---|
-| 品牌还原 | 精确 token，像素级 | 由 prompt 描述，近似 |
-| 文字 | 精准可编辑 | 可能出错，页内文字要少 |
-| 依赖 | 无 | LabNana API key |
-| 适合 | 商务/技术/数据内容 | 故事、教育插画、氛围向内容 |
+| 文字 | 精准、可编辑 | 应保持极少，生成后必须检查 |
+| 依赖 | 本地构建工具 | Codex 内置 `image_gen` |
+| 适合 | 商务、技术、数据内容 | 故事、教育插画、氛围内容 |
 
-## 流程
+不得调用 LabNana、Gemini、外部图片 API、CLI 或本地生图脚本。不得请求 API key。内置工具不可用或失败时，停止图片模式并说明原因，不得静默回退。
 
-1. 正常完成 SKILL.md 的 Step 1-4（分析、风格决策、拉 DESIGN.md、大纲）
-2. 为每页写图像 prompt，存 `prompts/NN-slide-{slug}.md`。prompt 必须自包含：
-   - 开头声明:"16:9 presentation slide, {品牌} brand design style"
-   - 将 design-tokens.md 中的颜色（写 hex 值）、字体气质、留白程度、装饰母题翻译成英文视觉描述
-   - 页面文字逐字给出并加引号，越少越好（标题 + 最多 3 个短语）
-   - 描述布局（"large centered headline, small caption bottom-left"）
-3. 逐页生成：
+## 工作流
+
+1. 正常完成主 Skill 的内容分析、风格决策、design tokens 和大纲。
+2. 为每页生成一份自包含提示词：
+   - 明确 16:9 演示页面及用途；
+   - 写出品牌配色 hex、字体气质、留白和装饰母题；
+   - 页面文字只保留标题和最多 3 个短语，并逐字给出；
+   - 明确布局、对齐和视觉焦点；
+   - 禁止 Logo、水印、页码、假文字和无意义装饰。
+3. 每一页单独调用一次 Codex 内置 `image_gen`。批量页面也不得改用 CLI batch。
+4. 逐页检查文字、构图、裁切和视觉一致性。错误时只针对该页重试一次，并简化文字。
+5. 使用工具返回的保存路径或输出提示，把已接受图片复制到项目的 `slides/` 目录。不得让最终 deck 引用只存在于 Codex 默认生成目录的文件。
+6. 需要统一人物或画风时，在每份提示词中重复完整视觉身份；工具支持当前参考图时，可使用已接受的封面作为风格参考。
+7. 使用 `export_deck.py --from-images` 将 PNG 合成 PPTX 或 PDF：
 
 ```bash
-python3 <SKILL_DIR>/scripts/generate_slide.py --prompt "$(cat prompts/01-slide-cover.md)" --output design-slide/{topic-slug}/01-slide-cover.png
+python3 <SKILL_DIR>/scripts/export_deck.py <slides-dir> --from-images --pptx <output.pptx>
 ```
 
-4. 检查每张图的文字是否正确，错误则重生成该页（最多重试 2 次，仍失败就简化该页文字）
-5. 用 `export_deck.py --from-images` 把 PNG 合成 pptx/pdf：
+8. 如果还要 HTML deck，使用 `build_deck.py` 打包已生成页面；最终只交付用户请求的文件。
 
-```bash
-python3 <SKILL_DIR>/scripts/export_deck.py design-slide/{topic-slug} --from-images --pptx design-slide/{topic-slug}/{topic-slug}.pptx
-```
+图片模式产物不可编辑，应在交付说明中明确这一点。

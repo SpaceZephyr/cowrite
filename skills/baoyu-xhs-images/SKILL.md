@@ -368,21 +368,13 @@ Display the selected style's default elements from preset, then ask:
 
 With confirmed outline + style + layout:
 
-**Visual Consistency — Reference Image Chain**:
-To ensure character/style consistency across all images in a series:
-1. **Generate image 1 (cover) FIRST** — without `--ref`
-2. **Use image 1 as `--ref` for ALL remaining images** (2, 3, ..., N)
-   - This anchors the character design, color rendering, and illustration style
-   - Command pattern: `--ref <path-to-image-01.png>` added to every subsequent generation
-
-This is critical for styles that use recurring characters, mascots, or illustration elements. Image 1 becomes the visual anchor for the entire series.
+**Visual Consistency — Built-in Image Chain**:
+Use Codex's built-in `image_gen` tool only. Generate image 1 first without a reference. For later images, repeat the complete palette, typography, character, decoration, and layout identity in every prompt. When the built-in tool and current context support a reference image, use the accepted cover as a style reference; never invent CLI flags or switch providers.
 
 **For each image (cover + content + ending)**:
 1. Save prompt to `prompts/NN-{type}-[slug].md` (in user's preferred language)
    - **Backup rule**: If prompt file exists, rename to `prompts/NN-{type}-[slug]-backup-YYYYMMDD-HHMMSS.md`
-2. Generate image:
-   - **Image 1**: Generate without `--ref` (this establishes the visual anchor)
-   - **Images 2+**: Generate with `--ref <image-01-path>` for consistency
+2. Call built-in `image_gen` once for this distinct image. Inspect the result, then copy the accepted saved output into the project directory.
    - **Backup rule**: If image file exists, rename to `NN-{type}-[slug]-backup-YYYYMMDD-HHMMSS.png`
 3. Report progress after each generation
 
@@ -394,15 +386,11 @@ The watermark should be legible but not distracting from the main content.
 ```
 Reference: `references/config/watermark-guide.md`
 
-**Image Generation Skill Selection**:
-- Check available image generation skills
-- If multiple skills available, ask user preference
-
-**Session Management**:
-If image generation skill supports `--sessionId`:
-1. Generate unique session ID: `xhs-{topic-slug}-{timestamp}`
-2. Use same session ID for all images
-3. Combined with reference image chain, ensures maximum visual consistency
+**Image Generation Tool**:
+- Always use Codex built-in `image_gen` through the bundled `image-studio` Skill.
+- Do not ask the user to choose another provider.
+- Do not call LabNana, Gemini, an API/CLI generator, or a local script.
+- If built-in `image_gen` is unavailable or fails, stop without inserting placeholders.
 
 ### Step 6: Completion Report
 

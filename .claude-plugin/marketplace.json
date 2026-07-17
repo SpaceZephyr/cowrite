@@ -9,15 +9,15 @@
     {
       "name": "cowrite",
       "source": "./",
-      "description": "Local AI co-writing canvas with MCP, Image2, slides, WeChat layout, and writing optimization skills.",
-      "version": "0.11.0",
+      "description": "Local AI co-writing canvas with MCP, Codex built-in image generation, slides, WeChat layout, and writing optimization skills.",
+      "version": "0.12.0",
       "author": {
         "name": "Space"
       },
       "homepage": "https://github.com/SpaceZephyr/cowrite",
       "repository": "https://github.com/SpaceZephyr/cowrite",
       "license": "MIT",
-      "keywords": ["writing", "markdown", "mcp", "image2", "codex", "claude-code"],
+      "keywords": ["writing", "markdown", "mcp", "image-gen", "codex", "claude-code"],
       "category": "productivity"
     }
   ]

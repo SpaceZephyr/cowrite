@@ -28,20 +28,20 @@ describe('agent command skill routing', () => {
     expect(command).toContain('document.url')
   })
 
-  it('routes illustration commands to bundled Image2 without silent fallback', () => {
+  it('routes illustration commands to Codex built-in image generation without fallback', () => {
     const command = illustrateCommand(input)
     expect(command).toContain('image-studio Skill')
-    expect(command).toContain('GPT-Image-2 / LabNana')
-    expect(command).toContain('不得静默替换为其他模型')
+    expect(command).toContain('Codex 内置 image_gen')
+    expect(command).toContain('不得调用 LabNana、Gemini、外部图片 API、CLI、本地生图脚本或其他模型')
     expect(command).toContain('cowrite_upload_asset')
     expect(command).toContain('cowrite_insert_after')
   })
 
-  it('routes full-article illustration through batch planning and Image2', () => {
+  it('routes full-article illustration through batch planning and built-in image generation', () => {
     const command = articleIllustrationCommand({ pageId: 'page_demo', title: '整篇文章', content: '# 整篇文章\n\n## 第一节\n\n正文。' })
     expect(command).toContain('article-batch-illustration Skill')
     expect(command).toContain('image-studio Skill')
-    expect(command).toContain('GPT-Image-2 / LabNana')
+    expect(command).toContain('Codex 内置 image_gen')
     expect(command).toContain('2-6 张')
     expect(command).toContain('cowrite_upload_asset')
     expect(command).toContain('cowrite_insert_after')
@@ -97,26 +97,27 @@ describe('agent command skill routing', () => {
     expect(command).toContain('[公众号排版预览：公众号文章](url)')
   })
 
-  it('routes full-page Xiaohongshu layout through Image2 with required confirmations', () => {
+  it('routes full-page Xiaohongshu layout through built-in image generation with required confirmations', () => {
     const command = xhsLayoutCommand({ pageId: 'page_demo', title: '小红书文章' })
     expect(command).toContain('baoyu-xhs-images Skill')
-    expect(command).toContain('GPT-Image-2 / LabNana')
+    expect(command).toContain('Codex 内置 image_gen')
     expect(command).toContain('确认 1')
     expect(command).toContain('确认 2')
-    expect(command).toContain('aspect-ratio=3:4')
+    expect(command).toContain('3:4 画布')
     expect(command).toContain('cowrite_upload_asset')
     expect(command).toContain('![小红书图片 01：小红书文章](url)')
   })
 
-  it('packages every routed skill without packaging the local API key', () => {
-    for (const skill of ['cowrite', 'image-studio', 'text-logic-diagram', 'ai-writing-assistant', 'space-multi-design-ppt', 'space-wechat-layout', 'baoyu-xhs-images']) {
+  it('packages every routed skill without external image generator scripts', () => {
+    for (const skill of ['cowrite', 'image-studio', 'article-batch-illustration', 'text-logic-diagram', 'ai-writing-assistant', 'space-multi-design-ppt', 'space-wechat-layout', 'baoyu-xhs-images']) {
       expect(existsSync(path.join(projectRoot, 'skills', skill, 'SKILL.md'))).toBe(true)
     }
-    expect(existsSync(path.join(projectRoot, 'skills/image-studio/scripts/generate_image.py'))).toBe(true)
+    expect(existsSync(path.join(projectRoot, 'skills/image-studio/scripts/generate_image.py'))).toBe(false)
+    expect(existsSync(path.join(projectRoot, 'skills/space-multi-design-ppt/scripts/generate_slide.py'))).toBe(false)
     expect(existsSync(path.join(projectRoot, 'skills/text-logic-diagram/assets/template.html'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/space-multi-design-ppt/scripts/build_deck.py'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/space-wechat-layout/assets/static-preview-template.html'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/baoyu-xhs-images/references/elements/canvas.md'))).toBe(true)
-    expect(existsSync(path.join(projectRoot, 'skills/image-studio/.labnana.env'))).toBe(false)
+    expect(existsSync(path.join(projectRoot, 'skills/image-studio/.labnana.env.example'))).toBe(false)
   })
 })

@@ -119,7 +119,7 @@ function LayoutModal({ onClose, onChoose }: {
           <b>公众号排版</b><small>可复制富 HTML</small>
         </button>
         <button className="slide-option" onClick={() => onChoose('xhs')}>
-          <b>小红书排版</b><small>Image2 图片组</small>
+          <b>小红书排版</b><small>Codex 内置生图</small>
         </button>
       </div>
       <p className="slide-footnote">选择后复制任务，粘贴给 Agent 执行。</p>
@@ -141,8 +141,8 @@ function ArticleIllustrationModal({ page, onClose, onConfirm }: {
       <div className="illustration-page"><span>当前页面</span><b>{page.title}</b></div>
       <div className="illustration-specs">
         <div><span>规划</span><b>自动选择 2-6 处</b></div>
-        <div><span>模型</span><b>GPT-Image-2</b></div>
-        <div><span>画幅</span><b>16:9 · 2K</b></div>
+        <div><span>模型</span><b>Codex image_gen</b></div>
+        <div><span>画幅</span><b>16:9 · 高清</b></div>
         <div><span>风格</span><b>全文统一匹配</b></div>
       </div>
       <p className="slide-footnote">Agent 会按文章结构生成配图，并分别插入对应段落，不改动正文。</p>
@@ -416,7 +416,7 @@ function Editor({ page, onDirty, onSaved, notify }: {
             <button title="行内代码" onMouseDown={(event) => { event.preventDefault(); wrapSelection('`', '`') }}>{'<>'}</button>
             <button title="引用" onMouseDown={(event) => { event.preventDefault(); wrapSelection('\n> ', '\n') }}>&gt;</button>
             <span className="bar-divider" />
-            <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(illustrateCommand({ pageId, selection: selectionBar.text }), 'Image2 配图口令已复制，结果会插入选中段落下方') }}>配图</button>
+            <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(illustrateCommand({ pageId, selection: selectionBar.text }), 'Codex 内置生图任务已复制，结果会插入选中段落下方') }}>配图</button>
             <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(explainerCommand({ pageId, selection: selectionBar.text }), 'HTML/PPT 解释图口令已复制，结果会插入选中段落下方') }}>HTML</button>
             <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(polishCommand({ pageId, selection: selectionBar.text }), 'Skill 优化口令已复制，Agent 只会改写这段文字') }}>优化</button>
             <button className="ai" onMouseDown={(event) => { event.preventDefault(); copyAi(conversationCommand({ pageId, selection: selectionBar.text }), '已引用选中文字，粘贴到 Codex 对话框后补充修改要求') }}>对话</button>
@@ -526,7 +526,7 @@ function App() {
     if (!activePage) return
     await navigator.clipboard.writeText(xhsLayoutCommand({ pageId: activePage.id, title: activePage.title }))
     setLayoutOpen(false)
-    notify('小红书排版口令已复制，Agent 确认方案后会用 Image2 生成图片组并插回当前页面')
+    notify('小红书排版口令已复制，Agent 确认方案后会用 Codex 内置模型生成图片组')
   }
 
   const copyArticleIllustrationCommand = async () => {
@@ -537,7 +537,7 @@ function App() {
       content: activePage.content,
     }))
     setIllustrationOpen(false)
-    notify('整篇配图任务已复制，Agent 会用 Image2 生成并插入对应段落')
+    notify('整篇配图任务已复制，Agent 会用 Codex 内置模型生成并插入对应段落')
   }
 
   const copyLarkSendCommand = async () => {
@@ -588,7 +588,7 @@ function App() {
           />
           <div className="topbar-right">
             <span className={`save-state ${saveState}`}>{saveState === 'saved' ? '已保存' : '保存中…'}</span>
-            <button onClick={() => setIllustrationOpen(true)} title="使用 Image2 为整篇文章配图">配图</button>
+            <button onClick={() => setIllustrationOpen(true)} title="使用 Codex 内置模型为整篇文章配图">配图</button>
             <button onClick={() => setLayoutOpen(true)} title="把当前 Page 排版为公众号或小红书内容">排版</button>
             <button onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">Slide</button>
             <button onClick={() => setCowriteOpen(true)} title="根据当前 Page 内容继续创作">Cowrite</button>
