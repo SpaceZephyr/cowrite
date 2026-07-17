@@ -32,7 +32,7 @@ def main() -> None:
         assert "公众号排版预览" in wechat_command
 
         page.get_by_role("button", name="Slide").click()
-        page.get_by_role("heading", name="把当前 Page 变成 Slides").wait_for()
+        page.get_by_role("heading", name="生成 Slides").wait_for()
         page.screenshot(path=str(SCREENSHOT), full_page=True)
 
         page.get_by_role("button", name="PPT").click()

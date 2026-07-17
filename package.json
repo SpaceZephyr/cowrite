@@ -1,7 +1,7 @@
 {
   "name": "cowrite",
   "private": true,
-  "version": "0.5.1",
+  "version": "0.5.2",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n WEB,API -c cyan,green \"vite\" \"tsx watch server/index.ts\"",

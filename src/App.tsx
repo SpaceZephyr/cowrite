@@ -56,31 +56,25 @@ function NewPageModal({ onClose, onCreated, notify }: {
   </div>
 }
 
-function SlideModal({ page, onClose, onChoose }: {
-  page: Page
+function SlideModal({ onClose, onChoose }: {
   onClose: () => void
   onChoose: (format: 'pptx' | 'html') => void
 }) {
   return <div className="modal-mask" onClick={onClose}>
     <div className="modal slide-modal" onClick={(event) => event.stopPropagation()}>
       <div className="slide-modal-head">
-        <div><h2>把当前 Page 变成 Slides</h2><p>{page.title}</p></div>
+        <h2>生成 Slides</h2>
         <button className="modal-close" title="关闭" onClick={onClose}>×</button>
       </div>
-      <p className="slide-hint">选择输出格式。品牌风格会由 space-multi-design-ppt 根据全文智能匹配。</p>
       <div className="slide-options">
         <button className="slide-option" onClick={() => onChoose('pptx')}>
-          <span className="slide-format pptx">P</span>
-          <span><b>PPT</b><small>生成原生可编辑的 .pptx 文件</small></span>
-          <i>→</i>
+          <b>PPTX</b><small>可编辑演示文稿</small>
         </button>
         <button className="slide-option" onClick={() => onChoose('html')}>
-          <span className="slide-format html">H</span>
-          <span><b>HTML</b><small>生成 16:9 多页网页幻灯片</small></span>
-          <i>→</i>
+          <b>HTML</b><small>网页幻灯片</small>
         </button>
       </div>
-      <p className="slide-footnote">选择后会复制任务口令。粘贴给 Codex / Claude Code，Agent 将读取当前页面、生成 Slides，并把交付地址插回文章顶部。</p>
+      <p className="slide-footnote">选择格式后，粘贴给 Agent 即可生成并回写链接。</p>
     </div>
   </div>
 }
@@ -379,7 +373,6 @@ function App() {
       notify={notify}
     />}
     {slideOpen && activePage && <SlideModal
-      page={activePage}
       onClose={() => setSlideOpen(false)}
       onChoose={copySlideCommand}
     />}
