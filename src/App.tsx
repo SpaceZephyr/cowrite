@@ -234,6 +234,28 @@ function SendModal({ page, onClose, onSendLark }: {
   </div>
 }
 
+function DeletePageModal({ page, onClose, onConfirm }: {
+  page: PageMeta
+  onClose: () => void
+  onConfirm: () => Promise<void>
+}) {
+  const [deleting, setDeleting] = useState(false)
+  const confirm = async () => {
+    setDeleting(true)
+    try { await onConfirm() } finally { setDeleting(false) }
+  }
+  return <div className="modal-mask" onClick={onClose}>
+    <div className="modal delete-modal" role="alertdialog" aria-labelledby="delete-page-title" aria-describedby="delete-page-description" onClick={(event) => event.stopPropagation()}>
+      <h2 id="delete-page-title">确定要删除吗？</h2>
+      <p id="delete-page-description">页面“{page.title}”删除后无法恢复。</p>
+      <div className="modal-actions">
+        <button disabled={deleting} onClick={onClose}>取消</button>
+        <button className="delete-confirm" disabled={deleting} onClick={confirm}>{deleting ? '删除中…' : '确定删除'}</button>
+      </div>
+    </div>
+  </div>
+}
+
 function Editor({ page, onDirty, onSaved, notify }: {
   page: Page
   onDirty: () => void
@@ -386,6 +408,7 @@ function App() {
   const [layoutOpen, setLayoutOpen] = useState(false)
   const [slideOpen, setSlideOpen] = useState(false)
   const [sendOpen, setSendOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<PageMeta | null>(null)
   const [saveState, setSaveState] = useState<'saved' | 'dirty'>('saved')
   const [toast, setToast] = useState('')
 
@@ -428,11 +451,11 @@ function App() {
     await refreshList()
   }
 
-  const removePage = async () => {
-    if (!activePage) return
-    await api(`/api/pages/${activePage.id}`, { method: 'DELETE' })
+  const removePage = async (page: PageMeta) => {
+    await api(`/api/pages/${page.id}`, { method: 'DELETE' })
     const list = await refreshList()
-    setActiveId(list[0]?.id ?? null)
+    if (activeId === page.id) setActiveId(list[0]?.id ?? null)
+    setDeleteTarget(null)
     notify('页面已删除')
   }
 
@@ -499,15 +522,16 @@ function App() {
       </div>
       <button className="new-page" onClick={() => setModalOpen(true)}>＋ 新建页面</button>
       <nav>
-        {pages.map((page) => <button
-          key={page.id}
-          className={page.id === activeId ? 'active' : ''}
-          onClick={() => setActiveId(page.id)}
-        >
-          <span className="doc-icon">▤</span>
-          <span className="doc-title">{page.title}</span>
-          {page.prompt && page.revision === 1 && <span className="pending-dot" title="等待 Agent 创作" />}
-        </button>)}
+        {pages.map((page) => <div key={page.id} className={`sidebar-page ${page.id === activeId ? 'active' : ''}`}>
+          <button className="sidebar-page-select" onClick={() => setActiveId(page.id)}>
+            <span className="doc-icon">▤</span>
+            <span className="doc-title">{page.title}</span>
+            {page.prompt && page.revision === 1 && <span className="pending-dot" title="等待 Agent 创作" />}
+          </button>
+          <button className="sidebar-delete" title={`删除 ${page.title}`} aria-label={`删除 ${page.title}`} onClick={() => setDeleteTarget(page)}>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 6.5v8m3.5-8v8m3.5-8v8M4 4.5h12M7 4.5V2.8h6v1.7m-7.5 0 .7 12.7h7.6l.7-12.7" /></svg>
+          </button>
+        </div>)}
       </nav>
       <footer><span className="mcp-dot" />Cowrite MCP · 本地</footer>
     </aside>
@@ -529,7 +553,6 @@ function App() {
             <button onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">Slide</button>
             <button onClick={() => setCowriteOpen(true)} title="根据当前 Page 内容继续创作">Cowrite</button>
             <button onClick={() => setSendOpen(true)} title="把当前 Page 发送到社交媒体">发送</button>
-            <button className="danger" onClick={removePage}>删除</button>
           </div>
         </>}
       </div>
@@ -565,6 +588,11 @@ function App() {
       page={activePage}
       onClose={() => setSendOpen(false)}
       onSendLark={copyLarkSendCommand}
+    />}
+    {deleteTarget && <DeletePageModal
+      page={deleteTarget}
+      onClose={() => setDeleteTarget(null)}
+      onConfirm={() => removePage(deleteTarget)}
     />}
     {toast && <div className="toast">✓ {toast}</div>}
   </div>

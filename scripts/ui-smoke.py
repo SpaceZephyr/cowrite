@@ -13,6 +13,7 @@ CONVERSATION_SCREENSHOT = Path("/tmp/cowrite-conversation-toolbar.png")
 LAYOUT_SCREENSHOT = Path("/tmp/cowrite-layout-modal.png")
 COWRITE_SCREENSHOT = Path("/tmp/cowrite-creation-modal.png")
 SEND_SCREENSHOT = Path("/tmp/cowrite-send-modal.png")
+DELETE_SCREENSHOT = Path("/tmp/cowrite-delete-modal.png")
 
 
 def main() -> None:
@@ -42,6 +43,8 @@ def main() -> None:
             "node => ({ overflow: getComputedStyle(node).overflow, textOverflow: getComputedStyle(node).textOverflow, whiteSpace: getComputedStyle(node).whiteSpace })"
         )
         assert title_style == {"overflow": "hidden", "textOverflow": "ellipsis", "whiteSpace": "nowrap"}
+        expect(page.locator(".topbar-right").get_by_role("button", name="删除")).to_have_count(0)
+        assert page.locator(".sidebar-delete").count() == page.locator(".sidebar-page").count()
         page.get_by_role("button", name="新建页面").click()
         with page.expect_file_chooser() as chooser_info:
             page.get_by_role("tab", name="导入 Markdown").click()
@@ -57,7 +60,15 @@ def main() -> None:
         expect(imported_title).to_have_value("Imported Markdown")
         assert page.get_by_role("button", name="导入页面").is_enabled()
         page.screenshot(path=str(IMPORT_SCREENSHOT), full_page=True)
-        page.get_by_role("button", name="取消").click()
+        page.get_by_role("button", name="导入页面").click()
+        imported_row = page.locator(".sidebar-page").filter(has_text="Imported Markdown")
+        imported_row.wait_for()
+        imported_row.get_by_title("删除 Imported Markdown").click()
+        page.get_by_role("heading", name="确定要删除吗？").wait_for()
+        expect(page.get_by_text("页面“Imported Markdown”删除后无法恢复。")).to_be_visible()
+        page.screenshot(path=str(DELETE_SCREENSHOT), full_page=True)
+        page.get_by_role("button", name="确定删除").click()
+        expect(imported_row).to_have_count(0)
         page.get_by_text("欢迎使用 Cowrite", exact=True).click()
         editor = page.locator('.editor-holder [contenteditable="true"]:visible')
         editor.wait_for()
@@ -173,6 +184,7 @@ def main() -> None:
         print(f"layout_screenshot={LAYOUT_SCREENSHOT}")
         print(f"cowrite_screenshot={COWRITE_SCREENSHOT}")
         print(f"send_screenshot={SEND_SCREENSHOT}")
+        print(f"delete_screenshot={DELETE_SCREENSHOT}")
         browser.close()
 
 

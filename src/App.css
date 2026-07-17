@@ -11,9 +11,13 @@
 .new-page { margin: 8px 0; height: 32px; border: 0; background: transparent; border-radius: 5px; color: var(--muted); font-size: 13px; text-align: left; padding: 0 8px; }
 .new-page:hover { background: var(--hover); }
 .sidebar nav { flex: 1; overflow-x: hidden; overflow-y: auto; display: grid; gap: 1px; align-content: start; }
-.sidebar nav button { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; min-height: 30px; overflow: hidden; border: 0; background: transparent; border-radius: 5px; text-align: left; padding: 4px 8px; color: #55534e; font-size: 13px; }
-.sidebar nav button:hover, .sidebar nav button.active { background: var(--hover); }
-.sidebar nav button.active { color: var(--text); font-weight: 500; }
+.sidebar-page { display: flex; align-items: center; min-width: 0; border-radius: 5px; color: #55534e; }
+.sidebar-page:hover, .sidebar-page.active { background: var(--hover); }
+.sidebar-page.active { color: var(--text); font-weight: 500; }
+.sidebar-page-select { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 30px; overflow: hidden; border: 0; background: transparent; text-align: left; padding: 4px 3px 4px 8px; color: inherit; font: inherit; }
+.sidebar-delete { width: 27px; height: 27px; flex: 0 0 27px; display: grid; place-items: center; border: 0; background: transparent; border-radius: 4px; color: #aaa7a0; padding: 6px; }
+.sidebar-delete:hover { background: #e7e5e0; color: #b4483e; }
+.sidebar-delete svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
 .doc-icon { color: var(--faint); font-size: 12px; }
 .doc-title { flex: 1; min-width: 0; display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .pending-dot { width: 7px; height: 7px; border-radius: 50%; background: #e9b949; flex: 0 0 auto; }
@@ -30,7 +34,6 @@
 .topbar-right { display: flex; align-items: center; gap: 6px; }
 .topbar-right button { border: 0; background: transparent; border-radius: 5px; padding: 5px 9px; font-size: 12px; color: var(--muted); }
 .topbar-right button:hover { background: var(--hover); }
-.topbar-right button.danger:hover { color: #b4483e; }
 .save-state { font-size: 11px; color: var(--faint); }
 .save-state.dirty { color: #a26817; }
 
@@ -67,6 +70,10 @@
 .modal-actions button { border: 1px solid #dededb; background: #fff; border-radius: 5px; padding: 7px 14px; font-size: 13px; }
 .modal-actions button.primary { border: 0; }
 .modal-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.delete-modal { width: min(380px, calc(100% - 40px)); gap: 10px; }
+.delete-modal p { margin: 0 0 8px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.modal-actions button.delete-confirm { border-color: #b4483e; background: #b4483e; color: #fff; }
+.modal-actions button.delete-confirm:hover { background: #9f3e36; }
 
 .new-page-modes { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 7px; background: #f2f2ef; }
 .new-page-modes button { border: 0; border-radius: 5px; padding: 7px 10px; background: transparent; color: var(--muted); font-size: 12.5px; }
