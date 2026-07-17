@@ -32,6 +32,8 @@
 .topbar-right button:hover { background: var(--hover); }
 .topbar-right button.slide-trigger { color: #2952a3; background: #edf3ff; font-weight: 600; }
 .topbar-right button.slide-trigger:hover { background: #dfeaff; }
+.topbar-right button.wechat-trigger { color: #087c4a; background: #eaf8f1; font-weight: 600; }
+.topbar-right button.wechat-trigger:hover { background: #d9f1e5; }
 .topbar-right button.danger:hover { color: #b4483e; }
 .save-state { font-size: 11px; color: var(--faint); }
 .save-state.dirty { color: #a26817; }

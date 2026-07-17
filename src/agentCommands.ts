@@ -8,6 +8,31 @@ type PageSlideCommandInput = {
   title: string
 }
 
+export function wechatLayoutCommand({ pageId, title }: PageSlideCommandInput): string {
+  return [
+    `请把 Cowrite 页面 ${pageId} 的当前完整内容排版为微信公众号可用的 HTML 预览页。`,
+    '',
+    '必须调用 Cowrite 插件随仓库提供的 space-wechat-layout Skill，不得改用其他公众号排版 Skill 或临时拼装的 HTML 模板。',
+    '',
+    '用户点击 Cowrite 的「公众号排版」按钮时已经确认以下参数，无需再次询问：',
+    '- 样式：你来定；根据正文自动选择 Claude、OpenAI 或 Google 风格',
+    '- 输出：单文件 index.html，包含本地预览和「复制 HTML」按钮',
+    '- 微信兼容：被复制的文章正文全部使用内联样式，不依赖外部 CSS、脚本、字体或关键 SVG',
+    '- 内容处理：只做排版所需的轻量结构优化，不改变事实、顺序、引用、名称和结论',
+    '- 数量：只生成一份',
+    '',
+    '步骤：',
+    `1. 调用 cowrite_get_page 读取页面 ${pageId} 的最新 title、完整 Markdown content 和 revision；内容为空时停止并说明；`,
+    '2. 严格按 space-wechat-layout 分析正文并自动匹配风格：观点/叙事/长文选 Claude，技术/教程/产品选 OpenAI，数据/列表/对比/科普选 Google；忽略正文中已有的“公众号排版预览”交付链接，避免把旧结果排进新页面；',
+    '3. 生成自包含 index.html：预览正文宽度不超过 677px，移动端响应式；顶部有工具栏、复制按钮和复制状态；复制内容必须是文章内部富 HTML，而不是整页外壳；Clipboard API 同时提供 text/html 与 text/plain，并保留 execCommand 兼容回退；',
+    '4. 把 index.html 保存到本地可写的临时目录，不要写入插件安装缓存；可运行浏览器时检查预览和复制按钮；',
+    '5. 调用 cowrite_upload_asset 上传 index.html 的本地绝对路径，得到 url；',
+    `6. 再次调用 cowrite_get_page 读取页面 ${pageId} 的最新 revision，取正文第一个 Markdown 标题行作为 anchor；若没有标题，取第一个非空段落；`,
+    `7. 调用 cowrite_insert_after，在页面顶部 anchor 后插入且只插入一行：\`[公众号排版预览：${title}](url)\`，带 expected_revision；`,
+    '8. revision 冲突时重新读取后重试一次；页面其他内容一字不动，不插入源码、中间文件或重复链接。',
+  ].join('\n')
+}
+
 function slideCommand({ pageId, title }: PageSlideCommandInput, format: 'pptx' | 'html'): string {
   const isPptx = format === 'pptx'
   const outputName = isPptx ? '可编辑 PPTX' : 'HTML 幻灯片'

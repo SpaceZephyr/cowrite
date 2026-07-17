@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 import type { Page } from '../shared/types'
-import { customCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand } from './agentCommands'
+import { customCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand } from './agentCommands'
 import './App.css'
 
 type PageMeta = Omit<Page, 'content'>
@@ -315,6 +315,12 @@ function App() {
     notify(`${format === 'pptx' ? 'PPT' : 'HTML'} Slide 口令已复制，粘贴给 Agent 后会把结果地址插回当前页面`)
   }
 
+  const copyWechatLayoutCommand = async () => {
+    if (!activePage) return
+    await navigator.clipboard.writeText(wechatLayoutCommand({ pageId: activePage.id, title: activePage.title }))
+    notify('公众号排版口令已复制，粘贴给 Agent 后会把 HTML 预览地址插回当前页面')
+  }
+
   if (!pages) return <div className="loading"><span>C</span><p>正在打开 Cowrite…</p></div>
 
   return <div className={`shell ${sidebarOpen ? 'sidebar-open' : ''}`}>
@@ -351,6 +357,7 @@ function App() {
           />
           <div className="topbar-right">
             <span className={`save-state ${saveState}`}>{saveState === 'saved' ? '已保存' : '保存中…'}</span>
+            <button className="wechat-trigger" onClick={copyWechatLayoutCommand} title="把当前 Page 排版为微信公众号 HTML">公众号排版</button>
             <button className="slide-trigger" onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">▰ Slide</button>
             <button onClick={copyCommand} title="复制创作口令给 Agent">⌘ 口令</button>
             <button className="danger" onClick={removePage}>删除</button>

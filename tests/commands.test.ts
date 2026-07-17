@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand } from '../src/agentCommands.js'
+import { explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand, wechatLayoutCommand } from '../src/agentCommands.js'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const input = { pageId: 'page_demo', selection: '这是一段需要处理的文字。' }
@@ -48,13 +48,23 @@ describe('agent command skill routing', () => {
     expect(command).toContain('[打开 HTML 幻灯片：演示文章](url)')
   })
 
+  it('routes full-page WeChat layout to the bundled copyable HTML workflow', () => {
+    const command = wechatLayoutCommand({ pageId: 'page_demo', title: '公众号文章' })
+    expect(command).toContain('space-wechat-layout Skill')
+    expect(command).toContain('Claude、OpenAI 或 Google')
+    expect(command).toContain('text/html 与 text/plain')
+    expect(command).toContain('cowrite_upload_asset')
+    expect(command).toContain('[公众号排版预览：公众号文章](url)')
+  })
+
   it('packages every routed skill without packaging the local API key', () => {
-    for (const skill of ['cowrite', 'image-studio', 'text-logic-diagram', 'ai-writing-assistant', 'space-multi-design-ppt']) {
+    for (const skill of ['cowrite', 'image-studio', 'text-logic-diagram', 'ai-writing-assistant', 'space-multi-design-ppt', 'space-wechat-layout']) {
       expect(existsSync(path.join(projectRoot, 'skills', skill, 'SKILL.md'))).toBe(true)
     }
     expect(existsSync(path.join(projectRoot, 'skills/image-studio/scripts/generate_image.py'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/text-logic-diagram/assets/template.html'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/space-multi-design-ppt/scripts/build_deck.py'))).toBe(true)
+    expect(existsSync(path.join(projectRoot, 'skills/space-wechat-layout/assets/static-preview-template.html'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/image-studio/.labnana.env'))).toBe(false)
   })
 })

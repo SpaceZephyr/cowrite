@@ -1,7 +1,7 @@
 {
   "name": "cowrite",
-  "version": "0.4.0",
-  "description": "A local AI co-writing canvas with MCP, Image2, HTML diagrams, and writing optimization skills.",
+  "version": "0.5.0",
+  "description": "A local AI co-writing canvas with MCP, Image2, slides, WeChat layout, and writing optimization skills.",
   "author": {
     "name": "Space",
     "url": "https://github.com/SpaceZephyr"
@@ -20,11 +20,12 @@
     "category": "Productivity",
     "websiteURL": "https://github.com/SpaceZephyr/cowrite",
     "brandColor": "#2563EB",
-    "capabilities": ["Read", "Write", "Generate images", "Create HTML diagrams", "Create PPTX and HTML slides", "Polish writing"],
+    "capabilities": ["Read", "Write", "Generate images", "Create HTML diagrams", "Create PPTX and HTML slides", "Create WeChat layouts", "Polish writing"],
     "defaultPrompt": [
       "启动 Cowrite 并告诉我本地画布地址",
       "在 cowrite 里创建一篇文章",
-      "把当前 Cowrite 页面转换为 Slides"
+      "把当前 Cowrite 页面转换为 Slides",
+      "把当前 Cowrite 页面排版成公众号 HTML"
     ]
   }
 }

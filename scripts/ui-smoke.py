@@ -1,4 +1,4 @@
-"""Headless smoke test for Cowrite's Page Slide workflow."""
+"""Headless smoke test for Cowrite's Page-level export workflows."""
 
 import os
 from pathlib import Path
@@ -25,6 +25,12 @@ def main() -> None:
 
         buttons = page.get_by_role("button").all_inner_texts()
         print(f"buttons={buttons}")
+        page.get_by_role("button", name="公众号排版").click()
+        wechat_command = page.evaluate("navigator.clipboard.readText()")
+        assert "space-wechat-layout" in wechat_command
+        assert "index.html" in wechat_command
+        assert "公众号排版预览" in wechat_command
+
         page.get_by_role("button", name="Slide").click()
         page.get_by_role("heading", name="把当前 Page 变成 Slides").wait_for()
         page.screenshot(path=str(SCREENSHOT), full_page=True)
@@ -43,6 +49,7 @@ def main() -> None:
 
         print(f"ppt_command_length={len(ppt_command)}")
         print(f"html_command_length={len(html_command)}")
+        print(f"wechat_command_length={len(wechat_command)}")
         print(f"screenshot={SCREENSHOT}")
         browser.close()
 
