@@ -6,8 +6,8 @@
 
 <p align="center">
   <img alt="Protocol" src="https://img.shields.io/badge/protocol-MCP-6B7280">
-  <img alt="Bundled skills" src="https://img.shields.io/badge/bundled_skills-4-2563EB">
-  <img alt="Output" src="https://img.shields.io/badge/output-Markdown%20%7C%20PNG%20%7C%20HTML-111827">
+  <img alt="Bundled skills" src="https://img.shields.io/badge/bundled_skills-5-2563EB">
+  <img alt="Output" src="https://img.shields.io/badge/output-Markdown%20%7C%20PNG%20%7C%20PPTX%20%7C%20HTML-111827">
   <img alt="Runtime" src="https://img.shields.io/badge/runtime-local-16A34A">
 </p>
 
@@ -28,7 +28,7 @@ Cowrite 是一个本地运行的对话式写作画布。浏览器负责承载和
 请依次运行：
 1. codex plugin marketplace add SpaceZephyr/cowrite --ref main
 2. codex plugin add cowrite@cowrite
-3. codex plugin list，确认 Cowrite、4 个 Skills 和 Cowrite MCP 已安装
+3. codex plugin list，确认 Cowrite、5 个 Skills 和 Cowrite MCP 已安装
 安装完成后告诉我需要新建一个任务来加载插件；新任务中调用 cowrite_get_status，返回本地画布地址。
 ```
 
@@ -54,7 +54,7 @@ codex plugin add cowrite@cowrite
 请依次运行：
 1. claude plugin marketplace add SpaceZephyr/cowrite
 2. claude plugin install cowrite@cowrite --scope user
-3. claude plugin list，确认 Cowrite、4 个 Skills 和 Cowrite MCP 已安装
+3. claude plugin list，确认 Cowrite、5 个 Skills 和 Cowrite MCP 已安装
 安装完成后提醒我运行 /reload-plugins 或新开一个 Claude Code 会话；加载后调用 cowrite_get_status，返回本地画布地址。
 ```
 
@@ -100,8 +100,9 @@ npm run dev
 
 1. 新建页面，填写标题和创作要求；Cowrite 会复制创作口令，Agent 完成后写回页面。
 2. 在编辑器中选中文字，使用浮动工具栏的「配图」「HTML」「优化」或「指令」。
-3. Agent 读取页面最新 revision，调用指定 Skill 产出结果，再通过 MCP 精确写回。
-4. 编辑器轮询更新，人和 Agent 可以继续编辑同一页面；revision 乐观锁会阻止相互覆盖。
+3. 点击每个 Page 顶部的「Slide」，选择 PPT 或 HTML；Agent 使用整篇内容生成 Slides，并把交付链接插回文章顶部。
+4. Agent 读取页面最新 revision，调用指定 Skill 产出结果，再通过 MCP 精确写回。
+5. 编辑器轮询更新，人和 Agent 可以继续编辑同一页面；revision 乐观锁会阻止相互覆盖。
 
 ## 内置 Skill 路由
 
@@ -110,6 +111,7 @@ npm run dev
 | 配图 | `skills/image-studio` | GPT-Image-2 / LabNana、16:9 PNG、不得静默切换模型 |
 | HTML | `skills/text-logic-diagram` | 16:9 HTML/PPT 风格单页、内联 CSS + SVG、适合 iframe |
 | 优化 | `skills/ai-writing-assistant` | Method 5 局部改写，只替换选中文字 |
+| Slide | `skills/space-multi-design-ppt` | 智能品牌匹配；原生可编辑 PPTX 或 16:9 HTML deck |
 | 页面读写 | `skills/cowrite` | MCP 操作、revision 合并、防覆盖规则 |
 
 按钮复制的口令会显式声明 Skill 名称和已确认参数。配图链路若缺少凭据、余额或本地服务，会直接返回失败，不会改用其他模型并插入来源不明的图片。
@@ -143,6 +145,7 @@ skills/cowrite/SKILL.md                   页面读写与并发规则
 skills/image-studio/                      Image2 生图脚本、风格和提示词模板
 skills/text-logic-diagram/                HTML/PPT 逻辑图规范与模板
 skills/ai-writing-assistant/              文章创作与局部优化方法
+skills/space-multi-design-ppt/             文章转 PPTX / HTML Slides 工作流
 ```
 
 MCP 提供七个工具：`cowrite_get_status`、`cowrite_list_pages`、`cowrite_get_page`、`cowrite_create_page`、`cowrite_update_page`、`cowrite_upload_asset` 和 `cowrite_insert_after`。

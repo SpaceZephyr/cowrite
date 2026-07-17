@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin.json",
   "name": "cowrite",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Local AI co-writing canvas with MCP, Image2, HTML diagrams, and writing optimization skills.",
   "author": {
     "name": "Space"

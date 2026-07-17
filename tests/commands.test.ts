@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { explainerCommand, illustrateCommand, polishCommand } from '../src/agentCommands.js'
+import { explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand } from '../src/agentCommands.js'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const input = { pageId: 'page_demo', selection: '这是一段需要处理的文字。' }
@@ -32,12 +32,29 @@ describe('agent command skill routing', () => {
     expect(command).toContain('其余内容一字不动')
   })
 
+  it('routes full-page PPT output to the bundled editable PPTX workflow', () => {
+    const command = slidePptxCommand({ pageId: 'page_demo', title: '演示文章' })
+    expect(command).toContain('space-multi-design-ppt Skill')
+    expect(command).toContain('PPTX（python-pptx 原生构建，可编辑）')
+    expect(command).toContain('cowrite_upload_asset')
+    expect(command).toContain('[下载 PPTX：演示文章](url)')
+  })
+
+  it('routes full-page HTML output to the bundled deck builder', () => {
+    const command = slideHtmlCommand({ pageId: 'page_demo', title: '演示文章' })
+    expect(command).toContain('space-multi-design-ppt Skill')
+    expect(command).toContain('build_deck.py')
+    expect(command).toContain('deck.html')
+    expect(command).toContain('[打开 HTML 幻灯片：演示文章](url)')
+  })
+
   it('packages every routed skill without packaging the local API key', () => {
-    for (const skill of ['cowrite', 'image-studio', 'text-logic-diagram', 'ai-writing-assistant']) {
+    for (const skill of ['cowrite', 'image-studio', 'text-logic-diagram', 'ai-writing-assistant', 'space-multi-design-ppt']) {
       expect(existsSync(path.join(projectRoot, 'skills', skill, 'SKILL.md'))).toBe(true)
     }
     expect(existsSync(path.join(projectRoot, 'skills/image-studio/scripts/generate_image.py'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/text-logic-diagram/assets/template.html'))).toBe(true)
+    expect(existsSync(path.join(projectRoot, 'skills/space-multi-design-ppt/scripts/build_deck.py'))).toBe(true)
     expect(existsSync(path.join(projectRoot, 'skills/image-studio/.labnana.env'))).toBe(false)
   })
 })

@@ -3,6 +3,49 @@ type PassageCommandInput = {
   selection: string
 }
 
+type PageSlideCommandInput = {
+  pageId: string
+  title: string
+}
+
+function slideCommand({ pageId, title }: PageSlideCommandInput, format: 'pptx' | 'html'): string {
+  const isPptx = format === 'pptx'
+  const outputName = isPptx ? '可编辑 PPTX' : 'HTML 幻灯片'
+  const linkLabel = isPptx ? `下载 PPTX：${title}` : `打开 HTML 幻灯片：${title}`
+  return [
+    `请把 Cowrite 页面 ${pageId} 的当前完整内容转换为${outputName}。`,
+    '',
+    '必须调用 Cowrite 插件随仓库提供的 space-multi-design-ppt Skill，不得改用其他 PPT/HTML Skill 或临时拼装的生成流程。',
+    '',
+    '用户点击 Cowrite 的 Slide 按钮时已经确认以下参数，无需再次询问：',
+    `- 输出格式：${isPptx ? 'PPTX（python-pptx 原生构建，可编辑）' : 'HTML（1280×720、16:9、多页 deck.html）'}`,
+    '- 设计风格：智能匹配；根据文章内容自动选择最合适的品牌风格，并在结果中说明选择',
+    '- 页数：按正文长度和 space-multi-design-ppt 规则自动决定',
+    '- 执行方式：一键生成；自动完成大纲后直接制作，无需等待第二次确认',
+    '- 数量：只生成一套',
+    '',
+    '步骤：',
+    `1. 调用 cowrite_get_page 读取页面 ${pageId} 的最新 title、完整 Markdown content 和 revision；内容为空时停止并说明；`,
+    '2. 严格按 space-multi-design-ppt 完成内容分析、品牌智能匹配、设计 token、大纲和幻灯片制作；忽略正文中已有的“下载 PPTX/打开 HTML 幻灯片”结果链接，避免把旧交付物做进新 deck；',
+    isPptx
+      ? '3. 使用 Skill 的 PPTX 模式，以 python-pptx 原生文本框和形状生成可编辑 .pptx；能使用 soffice 时完成一轮视觉 QA；'
+      : '3. 使用 Skill 的 HTML 模式逐页生成 1280×720 幻灯片，并用 build_deck.py 合成为可直接打开的单文件 deck.html；',
+    '4. 把最终交付文件保存到本地可写的临时目录；不要写入插件安装缓存；',
+    `5. 调用 cowrite_upload_asset 上传最终的 ${isPptx ? '.pptx' : 'deck.html'} 文件，得到 url；`,
+    `6. 再次调用 cowrite_get_page 读取页面 ${pageId} 的最新 revision，取正文第一个 Markdown 标题行作为 anchor；若没有标题，取第一个非空段落；`,
+    `7. 调用 cowrite_insert_after，在页面顶部 anchor 后插入且只插入一行：\`[${linkLabel}](url)\`，带 expected_revision；`,
+    '8. revision 冲突时重新读取后重试一次；页面其他内容一字不动，不插入中间文件、预览图或重复链接。',
+  ].join('\n')
+}
+
+export function slidePptxCommand(input: PageSlideCommandInput): string {
+  return slideCommand(input, 'pptx')
+}
+
+export function slideHtmlCommand(input: PageSlideCommandInput): string {
+  return slideCommand(input, 'html')
+}
+
 export function polishCommand({ pageId, selection }: PassageCommandInput): string {
   return [
     `请优化 Cowrite 页面 ${pageId} 中的一段文字。`,

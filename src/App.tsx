@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 import type { Page } from '../shared/types'
-import { customCommand, explainerCommand, illustrateCommand, polishCommand } from './agentCommands'
+import { customCommand, explainerCommand, illustrateCommand, polishCommand, slideHtmlCommand, slidePptxCommand } from './agentCommands'
 import './App.css'
 
 type PageMeta = Omit<Page, 'content'>
@@ -52,6 +52,35 @@ function NewPageModal({ onClose, onCreated, notify }: {
           {prompt.trim() ? '创建并复制口令' : '创建空白页'}
         </button>
       </div>
+    </div>
+  </div>
+}
+
+function SlideModal({ page, onClose, onChoose }: {
+  page: Page
+  onClose: () => void
+  onChoose: (format: 'pptx' | 'html') => void
+}) {
+  return <div className="modal-mask" onClick={onClose}>
+    <div className="modal slide-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="slide-modal-head">
+        <div><h2>把当前 Page 变成 Slides</h2><p>{page.title}</p></div>
+        <button className="modal-close" title="关闭" onClick={onClose}>×</button>
+      </div>
+      <p className="slide-hint">选择输出格式。品牌风格会由 space-multi-design-ppt 根据全文智能匹配。</p>
+      <div className="slide-options">
+        <button className="slide-option" onClick={() => onChoose('pptx')}>
+          <span className="slide-format pptx">P</span>
+          <span><b>PPT</b><small>生成原生可编辑的 .pptx 文件</small></span>
+          <i>→</i>
+        </button>
+        <button className="slide-option" onClick={() => onChoose('html')}>
+          <span className="slide-format html">H</span>
+          <span><b>HTML</b><small>生成 16:9 多页网页幻灯片</small></span>
+          <i>→</i>
+        </button>
+      </div>
+      <p className="slide-footnote">选择后会复制任务口令。粘贴给 Codex / Claude Code，Agent 将读取当前页面、生成 Slides，并把交付地址插回文章顶部。</p>
     </div>
   </div>
 }
@@ -219,6 +248,7 @@ function App() {
   const [activePage, setActivePage] = useState<Page | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [slideOpen, setSlideOpen] = useState(false)
   const [saveState, setSaveState] = useState<'saved' | 'dirty'>('saved')
   const [toast, setToast] = useState('')
 
@@ -276,6 +306,15 @@ function App() {
     notify('口令已复制，粘贴给 Codex / Claude Code')
   }
 
+  const copySlideCommand = async (format: 'pptx' | 'html') => {
+    if (!activePage) return
+    const input = { pageId: activePage.id, title: activePage.title }
+    const command = format === 'pptx' ? slidePptxCommand(input) : slideHtmlCommand(input)
+    await navigator.clipboard.writeText(command)
+    setSlideOpen(false)
+    notify(`${format === 'pptx' ? 'PPT' : 'HTML'} Slide 口令已复制，粘贴给 Agent 后会把结果地址插回当前页面`)
+  }
+
   if (!pages) return <div className="loading"><span>C</span><p>正在打开 Cowrite…</p></div>
 
   return <div className={`shell ${sidebarOpen ? 'sidebar-open' : ''}`}>
@@ -312,6 +351,7 @@ function App() {
           />
           <div className="topbar-right">
             <span className={`save-state ${saveState}`}>{saveState === 'saved' ? '已保存' : '保存中…'}</span>
+            <button className="slide-trigger" onClick={() => setSlideOpen(true)} title="把当前 Page 转换为 PPT 或 HTML">▰ Slide</button>
             <button onClick={copyCommand} title="复制创作口令给 Agent">⌘ 口令</button>
             <button className="danger" onClick={removePage}>删除</button>
           </div>
@@ -330,6 +370,11 @@ function App() {
       onClose={() => setModalOpen(false)}
       onCreated={async (page) => { setModalOpen(false); await refreshList(); setActiveId(page.id) }}
       notify={notify}
+    />}
+    {slideOpen && activePage && <SlideModal
+      page={activePage}
+      onClose={() => setSlideOpen(false)}
+      onChoose={copySlideCommand}
     />}
     {toast && <div className="toast">✓ {toast}</div>}
   </div>

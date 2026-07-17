@@ -10,7 +10,7 @@
       "name": "cowrite",
       "source": "./",
       "description": "Local AI co-writing canvas with MCP, Image2, HTML diagrams, and writing optimization skills.",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "author": {
         "name": "Space"
       },

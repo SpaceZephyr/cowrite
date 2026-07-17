@@ -34,7 +34,7 @@ export function buildCreateCommand(page: Page): string {
 }
 
 export class CowriteService {
-  constructor(private readonly store: JsonStore) {}
+  constructor(private readonly store: JsonStore, private readonly assetDirectory = assetsDir) {}
 
   async getState(): Promise<CowriteData> {
     return this.store.read()
@@ -117,14 +117,14 @@ export class CowriteService {
     const resolved = path.resolve(sourcePath)
     const info = await stat(resolved).catch(() => null)
     if (!info?.isFile()) throw new Error(`Asset file was not found at '${sourcePath}'. Pass an absolute path to an existing local file.`)
-    if (info.size > 20 * 1024 * 1024) throw new Error('Asset file exceeds the 20 MB limit.')
+    if (info.size > 50 * 1024 * 1024) throw new Error('Asset file exceeds the 50 MB limit.')
     const extension = path.extname(resolved).toLowerCase()
-    if (!['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.html'].includes(extension)) {
-      throw new Error(`Unsupported asset type '${extension}'. Allowed: png, jpg, jpeg, gif, webp, svg, html.`)
+    if (!['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.html', '.pptx', '.pdf'].includes(extension)) {
+      throw new Error(`Unsupported asset type '${extension}'. Allowed: png, jpg, jpeg, gif, webp, svg, html, pptx, pdf.`)
     }
     const fileName = `${nanoid(10)}${extension}`
-    await mkdir(assetsDir, { recursive: true })
-    await copyFile(resolved, path.join(assetsDir, fileName))
+    await mkdir(this.assetDirectory, { recursive: true })
+    await copyFile(resolved, path.join(this.assetDirectory, fileName))
     return { url: `/assets/${fileName}`, fileName }
   }
 

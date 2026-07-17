@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import request from 'supertest'
@@ -74,6 +74,15 @@ describe('cowrite pages', () => {
       markdown: 'x',
       expectedRevision: inserted.body.revision,
     }).expect(404)
+  })
+
+  it('uploads PPTX slide outputs into the asset store', async () => {
+    const source = path.join(directory, 'deck.pptx')
+    await writeFile(source, 'pptx fixture')
+    const store = new JsonStore(path.join(directory, 'cowrite.json'))
+    const app = createApp(new CowriteService(store, path.join(directory, 'assets')))
+    const uploaded = await request(app).post('/api/assets').send({ path: source }).expect(201)
+    expect(uploaded.body.url).toMatch(/^\/assets\/.+\.pptx$/)
   })
 
   it('renames without a revision bump and deletes', async () => {

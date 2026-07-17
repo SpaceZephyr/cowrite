@@ -27,6 +27,7 @@ Cowrite is a local Notion-like writing canvas. An installed plugin automatically
 - **Illustrate a passage** (pasted command with anchor text, asking for 配图): MUST use the bundled `image-studio` Skill and its GPT-Image-2 / LabNana workflow. The Cowrite command supplies explicit confirmations for type, content, style, and automatic prompt mode. Never silently switch to another image model. Upload the generated PNG with `cowrite_upload_asset`, then insert `![插图](url)` with `cowrite_insert_after`.
 - **HTML/PPT explainer** (pasted command asking for HTML or 解释图): MUST use the bundled `text-logic-diagram` Skill in its Cowrite embed profile. Produce ONE self-contained 16:9 light-theme HTML/SVG slide, upload it, then insert the iframe with `cowrite_insert_after`.
 - **Polish selected text** (pasted command asking for 优化): MUST use bundled `ai-writing-assistant`, Method 5 / Cowrite local optimization mode. Replace only the exact selected passage and preserve the rest of the page byte-for-byte.
+- **Convert a Page to Slides** (pasted command from the Page-level Slide button): MUST use bundled `space-multi-design-ppt`. The command already confirms PPTX or HTML, smart brand matching, automatic page count, and one-click outline authorization. Read the complete current page, generate only the requested final `.pptx` or `deck.html`, upload it, re-read the latest revision, and insert one Markdown delivery link immediately after the first heading. Never replace page content with the deck or insert intermediate files.
 
 ## Writing rules
 

@@ -23,7 +23,7 @@ function toolResult<T extends object>(value: T) {
 }
 
 export function createCowriteMcpServer() {
-  const server = new McpServer({ name: 'cowrite-mcp-server', version: '0.3.0' })
+  const server = new McpServer({ name: 'cowrite-mcp-server', version: '0.4.0' })
 
   server.registerTool(
     'cowrite_get_status',
@@ -99,7 +99,7 @@ export function createCowriteMcpServer() {
     'cowrite_upload_asset',
     {
       title: 'Upload a local asset to Cowrite',
-      description: 'Copy a local image (png/jpg/jpeg/gif/webp/svg) or a self-contained HTML file into Cowrite\'s asset store. Returns a url like /assets/xxx.png that can be embedded in page content. Use after generating an illustration or an HTML explainer locally.',
+      description: 'Copy a local image, self-contained HTML, PPTX, or PDF into Cowrite\'s asset store. Returns a /assets/... url that can be embedded or linked in page content. Use after generating an illustration, explainer, or slide deck locally.',
       inputSchema: { path: z.string().min(1).describe('Absolute path to the local file') },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
