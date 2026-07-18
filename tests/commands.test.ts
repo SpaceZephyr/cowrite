@@ -72,12 +72,13 @@ describe('agent command skill routing', () => {
     expect(command).toContain('只替换这段引用原文')
   })
 
-  it('routes full-page PPT output to the bundled editable PPTX workflow', () => {
+  it('routes full-page PPT output to editable PPTX and browser PDF preview', () => {
     const command = slidePptxCommand({ pageId: 'page_demo', title: '演示文章' })
     expect(command).toContain('space-multi-design-ppt Skill')
-    expect(command).toContain('PPTX（python-pptx 原生构建，可编辑）')
+    expect(command).toContain('PPTX（python-pptx 原生构建，可编辑）+ PDF 浏览器预览')
     expect(command).toContain('cowrite_upload_asset')
-    expect(command).toContain('[下载 PPTX：演示文章](url)')
+    expect(command).toContain('[浏览器预览 PPTX：演示文章](pdf_url)')
+    expect(command).toContain('[下载可编辑 PPTX：演示文章](pptx_url)')
   })
 
   it('routes full-page HTML output to the bundled deck builder', () => {

@@ -48,6 +48,14 @@ export function createApp(service = new CowriteService(new JsonStore())) {
     const input = z.object({ path: z.string().min(1).max(2000) }).parse(request.body)
     response.status(201).json(await service.uploadAsset(input.path))
   })
+  app.post('/api/assets/upload', express.raw({
+    type: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+    limit: '10mb',
+  }), async (request, response) => {
+    const mimeType = request.headers['content-type']?.split(';', 1)[0] ?? ''
+    if (!(request.body instanceof Buffer)) throw new Error('Paste a PNG, JPEG, GIF, or WebP image.')
+    response.status(201).json(await service.uploadImage(request.body, mimeType))
+  })
   app.use('/assets', express.static(assetsDir))
 
   if (process.env.NODE_ENV === 'production') {

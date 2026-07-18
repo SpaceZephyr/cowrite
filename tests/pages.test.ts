@@ -94,6 +94,23 @@ describe('cowrite pages', () => {
     expect(uploaded.body.url).toMatch(/^\/assets\/.+\.pptx$/)
   })
 
+  it('uploads pasted PNG bytes without embedding base64 in page content', async () => {
+    const store = new JsonStore(path.join(directory, 'cowrite.json'))
+    const app = createApp(new CowriteService(store, path.join(directory, 'assets')))
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00])
+    const uploaded = await request(app)
+      .post('/api/assets/upload')
+      .set('Content-Type', 'image/png')
+      .send(png)
+      .expect(201)
+    expect(uploaded.body.url).toMatch(/^\/assets\/.+\.png$/)
+    await request(app)
+      .post('/api/assets/upload')
+      .set('Content-Type', 'image/png')
+      .send(Buffer.from('not a png'))
+      .expect(400)
+  })
+
   it('renames without a revision bump and deletes', async () => {
     const app = testApp()
     const page = await request(app).get('/api/pages/page_welcome').expect(200)

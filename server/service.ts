@@ -1,4 +1,4 @@
-import { copyFile, mkdir, stat } from 'node:fs/promises'
+import { copyFile, mkdir, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { nanoid } from 'nanoid'
@@ -125,6 +125,37 @@ export class CowriteService {
     const fileName = `${nanoid(10)}${extension}`
     await mkdir(this.assetDirectory, { recursive: true })
     await copyFile(resolved, path.join(this.assetDirectory, fileName))
+    return { url: `/assets/${fileName}`, fileName }
+  }
+
+  async uploadImage(data: Uint8Array, mimeType: string): Promise<{ url: string; fileName: string }> {
+    const formats: Record<string, { extension: string; valid: (bytes: Uint8Array) => boolean }> = {
+      'image/png': {
+        extension: '.png',
+        valid: (bytes) => [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value),
+      },
+      'image/jpeg': {
+        extension: '.jpg',
+        valid: (bytes) => bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff,
+      },
+      'image/gif': {
+        extension: '.gif',
+        valid: (bytes) => ['GIF87a', 'GIF89a'].includes(Buffer.from(bytes.subarray(0, 6)).toString('ascii')),
+      },
+      'image/webp': {
+        extension: '.webp',
+        valid: (bytes) => Buffer.from(bytes.subarray(0, 4)).toString('ascii') === 'RIFF'
+          && Buffer.from(bytes.subarray(8, 12)).toString('ascii') === 'WEBP',
+      },
+    }
+    const format = formats[mimeType]
+    if (!format) throw new Error(`Unsupported pasted image type '${mimeType}'. Allowed: PNG, JPEG, GIF, WebP.`)
+    if (!data.byteLength) throw new Error('Pasted image is empty.')
+    if (data.byteLength > 10 * 1024 * 1024) throw new Error('Pasted image exceeds the 10 MB limit.')
+    if (!format.valid(data)) throw new Error(`Pasted image data does not match '${mimeType}'.`)
+    const fileName = `${nanoid(10)}${format.extension}`
+    await mkdir(this.assetDirectory, { recursive: true })
+    await writeFile(path.join(this.assetDirectory, fileName), data)
     return { url: `/assets/${fileName}`, fileName }
   }
 

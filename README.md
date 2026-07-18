@@ -98,10 +98,10 @@ npm run dev
 
 ## 写作工作流
 
-1. 新建页面时可填写标题和创作要求，也可从本地导入 `.md` / `.markdown` 文件；导入会自动识别一级标题或使用文件名。
+1. 新建页面时可填写标题和创作要求，也可从本地导入 `.md` / `.markdown` 文件；导入会自动识别一级标题或使用文件名。编辑时可直接粘贴 PNG、JPEG、GIF 或 WebP 图片，Cowrite 会先存入本地资产库再插入短链接，避免 base64 导致页面卡顿。
 2. 点击顶部「Cowrite」，在“按页面内容为要求创作”和“输入自定义创作要求”之间二选一；任务会连同当前页面全文复制到 Agent 对话框。
 3. 在编辑器中选中文字，使用浮动工具栏的「配图」「HTML」「优化」或「对话」；「对话」会复制带原文引用的草稿，粘贴到 Agent 输入框后补充修改要求。
-4. 点击每个 Page 顶部的「Slide」，选择 PPT 或 HTML；Agent 使用整篇内容生成 Slides，并把交付链接插回文章顶部。
+4. 点击每个 Page 顶部的「Slide」，选择 PPT 或 HTML；PPT 模式会同时生成可编辑 PPTX 和浏览器可打开的 PDF 预览，Agent 把交付链接插回文章顶部。
 5. 点击「排版」，选择公众号或小红书：公众号生成可复制富 HTML；小红书按确认后的策略用 Codex 内置 `image_gen` 生成 3:4 图片组。
 6. 点击顶部「配图」，确认后由 Agent 分析整篇文章，使用 Codex 内置 `image_gen` 生成 2-6 张统一风格的 16:9 配图并插入对应段落。
 7. 点击「发送」，可选择飞书、公众号或知乎；飞书确认后通过本机 `lark-cli` 创建云文档，公众号与知乎暂标记为“待完善”。
@@ -117,7 +117,7 @@ npm run dev
 | 整篇配图 | `skills/article-batch-illustration` + `skills/image-studio` | 自动规划 2-6 个锚点、统一风格、逐图安全插入 |
 | HTML | `skills/text-logic-diagram` | 16:9 HTML/PPT 风格单页、内联 CSS + SVG、适合 iframe |
 | 优化 | `skills/ai-writing-assistant` | Method 5 局部改写，只替换选中文字 |
-| Slide | `skills/space-multi-design-ppt` | 智能品牌匹配；原生可编辑 PPTX 或 16:9 HTML deck |
+| Slide | `skills/space-multi-design-ppt` | 智能品牌匹配；原生可编辑 PPTX + PDF 浏览器预览，或 16:9 HTML deck |
 | 排版 | `skills/space-wechat-layout` | 自动匹配 Claude / OpenAI / Google；微信公众号可复制富 HTML 预览页 |
 | 小红书排版 | `skills/baoyu-xhs-images` + `skills/image-studio` | 两次方案确认；Codex 内置 `image_gen` 逐张生成 3:4 图片组 |
 | 页面读写 | `skills/cowrite` | MCP 操作、revision 合并、防覆盖规则 |

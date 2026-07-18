@@ -1,7 +1,7 @@
 {
   "name": "cowrite",
   "private": true,
-  "version": "0.12.0",
+  "version": "0.13.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n WEB,API -c cyan,green \"vite\" \"tsx watch server/index.ts\"",
@@ -11,6 +11,7 @@
     "probe:plugin": "node scripts/probe-plugin.mjs",
     "build": "tsc -b && tsc -p tsconfig.server.json --noEmit && vite build",
     "test": "vitest run",
+    "smoke:paste-image": "python3 scripts/paste-image-smoke.py",
     "preview": "vite preview"
   },
   "dependencies": {

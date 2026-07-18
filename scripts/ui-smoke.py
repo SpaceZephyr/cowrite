@@ -177,6 +177,8 @@ def main() -> None:
         ppt_command = page.evaluate("navigator.clipboard.readText()")
         assert "space-multi-design-ppt" in ppt_command
         assert ".pptx" in ppt_command
+        assert "PDF 浏览器预览" in ppt_command
+        assert "[浏览器预览 PPTX：" in ppt_command
 
         page.get_by_role("button", name="Slide").click()
         page.get_by_role("button", name="HTML").click()

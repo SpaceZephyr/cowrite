@@ -209,7 +209,7 @@ function SlideModal({ onClose, onChoose }: {
       </div>
       <div className="slide-options">
         <button className="slide-option" onClick={() => onChoose('pptx')}>
-          <b>PPTX</b><small>可编辑演示文稿</small>
+          <b>PPTX</b><small>可编辑文件 + 浏览器预览</small>
         </button>
         <button className="slide-option" onClick={() => onChoose('html')}>
           <b>HTML</b><small>网页幻灯片</small>
@@ -297,6 +297,21 @@ function Editor({ page, onDirty, onSaved, notify }: {
   const [selectionBar, setSelectionBar] = useState<{ x: number; y: number; text: string } | null>(null)
   const pageId = page.id
 
+  const uploadClipboardImage = async (file: File) => {
+    if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type)) {
+      throw new Error('仅支持粘贴 PNG、JPEG、GIF 或 WebP 图片')
+    }
+    if (file.size > 10 * 1024 * 1024) throw new Error('粘贴图片不能超过 10 MB')
+    const response = await fetch('/api/assets/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': file.type },
+      body: file,
+    })
+    const result = await response.json() as { url?: string; error?: string }
+    if (!response.ok || !result.url) throw new Error(result.error || '图片上传失败')
+    return result.url
+  }
+
   const save = useCallback(async () => {
     const editor = vditorRef.current
     if (!editor || !dirtyRef.current) return
@@ -314,10 +329,18 @@ function Editor({ page, onDirty, onSaved, notify }: {
     }
   }, [pageId, onSaved, notify])
 
+  const scheduleSave = useCallback((delay = 800) => {
+    dirtyRef.current = true
+    onDirty()
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(save, delay)
+  }, [onDirty, save])
+
   useEffect(() => {
-    if (!holderRef.current) return
+    const holder = holderRef.current
+    if (!holder) return
     let disposed = false
-    const editor = new Vditor(holderRef.current, {
+    const editor = new Vditor(holder, {
       mode: 'ir',
       value: page.content,
       placeholder: '开始写作，或把口令粘贴给 Codex 让它来写……',
@@ -325,17 +348,54 @@ function Editor({ page, onDirty, onSaved, notify }: {
       toolbar: [],
       counter: { enable: false },
       after: () => { if (disposed) editor.destroy() },
-      input: () => {
-        dirtyRef.current = true
-        onDirty()
-        clearTimeout(timerRef.current)
-        timerRef.current = setTimeout(save, 800)
-      },
+      input: () => scheduleSave(),
     })
     vditorRef.current = editor
+    const pasteImages = async (event: ClipboardEvent) => {
+      const clipboard = event.clipboardData
+      if (!clipboard) return
+      const files = Array.from(clipboard.items)
+        .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+        .map((item) => item.getAsFile())
+        .filter((file): file is File => file !== null)
+      let dataUrls: string[] = []
+      if (!files.length) {
+        const html = clipboard.getData('text/html')
+        if (html.includes('data:image/')) {
+          const document = new DOMParser().parseFromString(html, 'text/html')
+          dataUrls = Array.from(document.querySelectorAll('img'))
+            .map((image) => image.getAttribute('src') || '')
+            .filter((source) => /^data:image\/(png|jpeg|gif|webp);base64,/i.test(source))
+        }
+      }
+      if (!files.length && !dataUrls.length) return
+      event.preventDefault()
+      event.stopPropagation()
+      notify(files.length > 1 ? `正在上传 ${files.length} 张图片…` : '正在上传图片…')
+      try {
+        for (const [index, source] of [...new Set(dataUrls)].entries()) {
+          const blob = await fetch(source).then((response) => response.blob())
+          files.push(new File([blob], `clipboard-image-${index + 1}.${blob.type === 'image/jpeg' ? 'jpg' : blob.type.split('/')[1]}`, { type: blob.type }))
+        }
+        const markdown: string[] = []
+        for (const file of files) {
+          const url = await uploadClipboardImage(file)
+          const alt = (file.name.replace(/\.[^.]+$/, '') || '粘贴图片').replace(/[\[\]\r\n]/g, '')
+          markdown.push(`![${alt}](${url})`)
+        }
+        editor.focus()
+        editor.insertValue(`${markdown.join('\n')}\n`)
+        scheduleSave(200)
+        notify(files.length > 1 ? `${files.length} 张图片已插入` : '图片已插入')
+      } catch (reason) {
+        notify(String(reason instanceof Error ? reason.message : reason))
+      }
+    }
+    holder.addEventListener('paste', pasteImages, true)
     return () => {
       disposed = true
       clearTimeout(timerRef.current)
+      holder.removeEventListener('paste', pasteImages, true)
       try { editor.destroy() } catch { /* 未完成初始化时忽略 */ }
       vditorRef.current = null
     }
@@ -394,10 +454,7 @@ function Editor({ page, onDirty, onSaved, notify }: {
     if (index === -1) { notify('没有在正文中找到选中文字，请重新选择'); return }
     const wrapped = markdown.slice(0, index) + before + text + after + markdown.slice(index + text.length)
     editor.setValue(wrapped)
-    dirtyRef.current = true
-    onDirty()
-    clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(save, 400)
+    scheduleSave(400)
   }
 
   const copyAi = async (command: string, hint: string) => {
@@ -511,7 +568,7 @@ function App() {
     const command = format === 'pptx' ? slidePptxCommand(input) : slideHtmlCommand(input)
     await navigator.clipboard.writeText(command)
     setSlideOpen(false)
-    notify(`${format === 'pptx' ? 'PPT' : 'HTML'} Slide 口令已复制，粘贴给 Agent 后会把结果地址插回当前页面`)
+    notify(`${format === 'pptx' ? 'PPTX 与预览' : 'HTML Slide'}任务已复制，Agent 完成后会把交付地址插回当前页面`)
   }
 
   const copyWechatLayoutCommand = async () => {
